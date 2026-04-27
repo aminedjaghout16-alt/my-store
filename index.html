@@ -387,7 +387,7 @@ const DEF_PRODUCTS = [
   {id:1,name:'FOOTGEAR',cat:'Shoes',price:2500,sizes:'S,M,L,XL',desc:'the best shoes for summer',image:'shoes.pnj.webp',icon:'',color:'#1a1a2e',stock:10},
 ];
 const DEF_SETTINGS = { storeName:'AmineStore', storeTag:'Premium Fashion Store', currency:'DZA', logoImg:'AmineStore.png', favicon:'', siteUrl:'https://aminestoredz.netlify.app/', phone:'+213673712323', email:'aminedjaghout0@gmail.com', storeAddress:'', facebook:'', instagram:'', tiktok:'', twitter:'', announcement:'', announcementOn:false, shippingFee:0, aboutUs:'We sell premium streetwear clothing.' };
-const DEF_PW = 'djaghout123';
+const DEF_PW = 'admin123';
 const DEF_CATS = ['All','T-Shirts','Jackets','Pants','Hoodies','Shoes','Dresses','Accessories'];
 
 // ===================== STATE =====================
@@ -914,13 +914,13 @@ async function loadOrdersFromFirebase(){
   if(!window._fbReady) return;
   try {
     const snap = await window._db.collection('orders').orderBy('date','desc').get();
-    const fbOrders = snap.docs.map(d => d.data());
-    const localIds = new Set(orders.map(o=>o.id));
-    fbOrders.forEach(o=>{ if(!localIds.has(o.id)) orders.push(o); });
-    orders.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const fbOrders = snap.docs.map(d => ({...d.data(), _docId: d.id}));
+    orders = fbOrders;
     save('sv_orders',orders);
   } catch(e){ console.warn('Firebase load failed:',e); }
 }
+
+// Removed - using simple reload instead
 
 function renderOrderCard(o, showConfirmBtn){
   const delLabel = o.deliveryType==='home'?'🏠 Home':'📦 Pickup';
@@ -985,29 +985,24 @@ function switchOrdTab(tab){
 async function confirmOrder(id){
   if(!window._fbReady) return;
   try {
-    await window._db.collection('orders').doc(id).update({confirmed: true});
-    // Update local array
-    const o = orders.find(x=>x.id===id);
-    if(o) o.confirmed = true;
-    save('sv_orders', orders);
-    const ordersTab = document.getElementById('atOrders');
-    if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
+    // Update in Firestore
+    await window._db.collection('orders').doc(id).set({confirmed: true}, {merge: true});
+    // Reload from Firebase
+    await loadOrdersFromFirebase();
     toast('Order confirmed!');
-  } catch(e){ console.error('Confirm failed:',e); toast('Error confirming order'); }
+  } catch(e){ console.error('Confirm failed:',e); toast('Error: '+e.message); }
 }
 
 async function deleteOrder(id){
   if(!confirm('Delete this order?')) return;
   if(!window._fbReady) return;
   try {
+    // Delete from Firestore
     await window._db.collection('orders').doc(id).delete();
-    // Update local array
-    orders = orders.filter(o=>o.id!==id);
-    save('sv_orders', orders);
-    const ordersTab = document.getElementById('atOrders');
-    if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
+    // Reload from Firebase
+    await loadOrdersFromFirebase();
     toast('Order deleted');
-  } catch(e){ console.error('Delete failed:',e); toast('Error deleting order'); }
+  } catch(e){ console.error('Delete failed:',e); toast('Error: '+e.message); }
 }
 
 function saveSettings(){
@@ -1168,27 +1163,25 @@ function initVisitorTracking(){
 
   // Count total visits (only once per session)
   if(!sessionStorage.getItem('visitCounted')){
-    rtdb.ref('stats/totalVisits').transaction(v => (v||0)+1);
+    rtdb.ref('stats/totalVisits').set(window._visitCount = (window._visitCount || 0) + 1, (err)=>{
+      if(err) rtdb.ref('stats/totalVisits').transaction(v => (v||0)+1);
+    });
     sessionStorage.setItem('visitCounted', '1');
   }
 
   // Track online users - create unique user ID
   const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
   const userRef = rtdb.ref('presence/' + userId);
-  const onlineRef = rtdb.ref('stats/onlineCount');
 
-  // When page loads, increment online count
-  userRef.set(true);
-  onlineRef.transaction(v => (v||0)+1);
+  // Add user to presence
+  userRef.set({online: true});
+  
+  // On disconnect (tab close/browser close), remove from presence
+  userRef.onDisconnect().remove();
 
-  // When user leaves/closes tab, decrement
-  userRef.onDisconnect().remove().then(()=>{
-    onlineRef.transaction(v => Math.max(0, (v||1)-1));
-  });
-
-  // Also listen for page unload as backup
+  // Decrement when leaving
   window.addEventListener('beforeunload', ()=>{
-    onlineRef.transaction(v => Math.max(0, (v||1)-1));
+    userRef.set(null);
   });
 }
 
