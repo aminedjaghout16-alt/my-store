@@ -5,33 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Store</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<!-- Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+<!-- Firebase compat (works with regular JS) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyBwGygunwwrPa60-qp9MFVo6EoUZFFOw1E",
     authDomain: "aminestore-42df8.firebaseapp.com",
     projectId: "aminestore-42df8",
     storageBucket: "aminestore-42df8.firebasestorage.app",
     messagingSenderId: "394293607796",
-    appId: "1:394293607796:web:43fd6d095204214fe2c021",
-    measurementId: "G-PZX1QKPW0N"
+    appId: "1:394293607796:web:43fd6d095204214fe2c021"
   };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // Expose Firebase functions to global scope
-  window._fbDb = db;
-  window._fbAddDoc = addDoc;
-  window._fbCollection = collection;
-  window._fbGetDocs = getDocs;
-  window._fbQuery = query;
-  window._fbOrderBy = orderBy;
+  firebase.initializeApp(firebaseConfig);
+  window._db = firebase.firestore();
   window._fbReady = true;
-  window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <style>
 /* === BASE === */
@@ -642,7 +630,7 @@ async function placeOrder(){
   // Save to Firebase
   if(window._fbReady){
     try {
-      await window._fbAddDoc(window._fbCollection(window._fbDb,'orders'), newOrder);
+      await window._db.collection('orders').add(newOrder);
     } catch(e){ console.warn('Firebase save failed:',e); }
   }
 
@@ -793,10 +781,8 @@ function renderAdminSettings(){
 async function loadOrdersFromFirebase(){
   if(!window._fbReady) return;
   try {
-    const q = window._fbQuery(window._fbCollection(window._fbDb,'orders'), window._fbOrderBy('date','desc'));
-    const snap = await window._fbGetDocs(q);
+    const snap = await window._db.collection('orders').orderBy('date','desc').get();
     const fbOrders = snap.docs.map(d => d.data());
-    // Merge with local orders (avoid duplicates by id)
     const localIds = new Set(orders.map(o=>o.id));
     fbOrders.forEach(o=>{ if(!localIds.has(o.id)) orders.push(o); });
     orders.sort((a,b)=>new Date(b.date)-new Date(a.date));
