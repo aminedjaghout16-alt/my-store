@@ -8,6 +8,7 @@
 <!-- Firebase compat (works with regular JS) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBwGygunwwrPa60-qp9MFVo6EoUZFFOw1E",
@@ -15,10 +16,12 @@
     projectId: "aminestore-42df8",
     storageBucket: "aminestore-42df8.firebasestorage.app",
     messagingSenderId: "394293607796",
-    appId: "1:394293607796:web:43fd6d095204214fe2c021"
+    appId: "1:394293607796:web:43fd6d095204214fe2c021",
+    databaseURL: "https://aminestore-42df8-default-rtdb.firebaseio.com"
   };
   firebase.initializeApp(firebaseConfig);
   window._db = firebase.firestore();
+  window._rtdb = firebase.database();
   window._fbReady = true;
 </script>
 <style>
@@ -362,7 +365,7 @@ const DEF_PRODUCTS = [
   {id:1,name:'FOOTGEAR',cat:'Shoes',price:2500,sizes:'S,M,L,XL',desc:'the best shoes for summer',image:'shoes.pnj.webp',icon:'',color:'#1a1a2e',stock:10},
 ];
 const DEF_SETTINGS = { storeName:'AmineStore', storeTag:'Premium Fashion Store', currency:'DZA', logoImg:'AmineStore.png', favicon:'', siteUrl:'https://aminestoredz.netlify.app/', phone:'+213673712323', email:'aminedjaghout0@gmail.com', storeAddress:'', facebook:'', instagram:'', tiktok:'', twitter:'', announcement:'', announcementOn:false, shippingFee:0, aboutUs:'We sell premium streetwear clothing.' };
-const DEF_PW = 'barcelona123456789';
+const DEF_PW = 'admin123';
 const DEF_CATS = ['All','T-Shirts','Jackets','Pants','Hoodies','Shoes','Dresses','Accessories'];
 
 // ===================== STATE =====================
@@ -682,6 +685,7 @@ async function openAdmin(){
   renderAdminPanel();
   document.getElementById('adminOV').classList.add('open');
   document.body.style.overflow='hidden';
+  startStatsListener();
   const ordersTab=document.getElementById('atOrders');
   if(ordersTab) ordersTab.innerHTML='<p style="color:var(--t3);text-align:center;padding:40px">⏳ Loading orders...</p>';
   await loadOrdersFromFirebase();
@@ -693,6 +697,16 @@ function renderAdminPanel(){
   document.getElementById('adminPanel').innerHTML=`
     <div class="a-top"><h2>${t('adminTitle')} <span class="a-tag">Admin</span></h2><button class="xbtn" onclick="closeAdmin()">✕</button></div>
     <div class="a-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px;text-align:center">
+          <div style="font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🟢 Online Now</div>
+          <div id="statOnline" style="font-size:2rem;font-weight:800;color:#10b981">—</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px;text-align:center">
+          <div style="font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">👁 Total Visits</div>
+          <div id="statTotal" style="font-size:2rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">—</div>
+        </div>
+      </div>
       <div class="a-tabs">
         <button class="a-tab on" onclick="aTab('products',this)">${t('cards')}</button>        <button class="a-tab" onclick="aTab('settings',this)">${t('settings')}</button>
         <button class="a-tab" onclick="aTab('orders',this)">${t('orders')}</button>
@@ -1018,6 +1032,43 @@ cart=cart.filter(c=>products.find(p=>p.id===c.id));
 if(settings.favicon){let link=document.querySelector("link[rel~='icon']");if(!link){link=document.createElement('link');link.rel='icon';document.head.appendChild(link);}link.href=settings.favicon;}
 save('sv_cart',cart);
 renderAll();
+
+// ===================== VISITOR TRACKING =====================
+function initVisitorTracking(){
+  if(!window._fbReady) return;
+  const rtdb = window._rtdb;
+
+  // Count total visits
+  const totalRef = rtdb.ref('stats/totalVisits');
+  totalRef.transaction(v => (v||0)+1);
+
+  // Track online users using presence
+  const onlineRef = rtdb.ref('stats/onlineCount');
+  const userRef = rtdb.ref('presence/' + Date.now() + '_' + Math.random().toString(36).substr(2,6));
+
+  // When user connects, add presence and increment online count
+  userRef.set(true);
+  userRef.onDisconnect().remove();
+  onlineRef.transaction(v => (v||0)+1);
+  // Decrement when user leaves
+  const decRef = rtdb.ref('stats/onlineCount');
+  window.addEventListener('beforeunload', ()=>{ decRef.transaction(v=>Math.max(0,(v||1)-1)); });
+}
+
+// Update admin stats display (called when admin is open)
+function startStatsListener(){
+  if(!window._fbReady || !window._rtdb) return;
+  window._rtdb.ref('stats/onlineCount').on('value', snap=>{
+    const el = document.getElementById('statOnline');
+    if(el) el.textContent = snap.val()||0;
+  });
+  window._rtdb.ref('stats/totalVisits').on('value', snap=>{
+    const el = document.getElementById('statTotal');
+    if(el) el.textContent = (snap.val()||0).toLocaleString();
+  });
+}
+
+initVisitorTracking();
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
