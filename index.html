@@ -630,10 +630,10 @@ async function placeOrder(){
   };
   orders.push(newOrder);
   save('sv_orders',orders);
-  // Save to Firebase
+  // Save to Firebase using order ID as document ID
   if(window._fbReady){
     try {
-      await window._db.collection('orders').add(newOrder);
+      await window._db.collection('orders').doc(orderNum).set(newOrder);
     } catch(e){ console.warn('Firebase save failed:',e); }
   }
 
@@ -873,8 +873,7 @@ async function confirmOrder(id){
   save('sv_orders', orders);
   if(window._fbReady){
     try {
-      const snap = await window._db.collection('orders').where('id','==',id).get();
-      snap.forEach(doc => doc.ref.update({confirmed: true}));
+      await window._db.collection('orders').doc(id).update({confirmed: true});
     } catch(e){ console.warn('Firebase confirm failed:',e); }
   }
   const ordersTab = document.getElementById('atOrders');
@@ -888,8 +887,7 @@ async function deleteOrder(id){
   save('sv_orders', orders);
   if(window._fbReady){
     try {
-      const snap = await window._db.collection('orders').where('id','==',id).get();
-      snap.forEach(doc => doc.ref.delete());
+      await window._db.collection('orders').doc(id).delete();
     } catch(e){ console.warn('Firebase delete failed:',e); }
   }
   const ordersTab = document.getElementById('atOrders');
