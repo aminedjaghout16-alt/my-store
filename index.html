@@ -118,6 +118,28 @@ a{text-decoration:none;color:inherit}
 .pcard-btn:hover{background:var(--grad);color:#fff;border-color:transparent}
 .pcard-btn.added{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:var(--grn)}
 .pcard-btn.out{opacity:.4;cursor:not-allowed;pointer-events:none}
+/* Product Preview Modal */
+.pm-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:var(--smooth)}
+.pm-ov.open{opacity:1;pointer-events:all}
+.pm-box{background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r3);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:28px;position:relative;transform:translateY(20px);transition:var(--smooth)}
+.pm-ov.open .pm-box{transform:translateY(0)}
+.pm-img{width:100%;height:280px;border-radius:var(--r2);object-fit:cover;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:20px;overflow:hidden}
+.pm-img img{width:100%;height:100%;object-fit:cover}
+.pm-name{font-size:1.4rem;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.pm-cat{font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.pm-desc{font-size:.88rem;color:var(--t2);line-height:1.6;margin-bottom:16px}
+.pm-price{font-size:1.6rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px}
+.pm-sz-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t2);margin-bottom:10px}
+.pm-sizes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.pm-sz{padding:8px 16px;border-radius:8px;background:var(--bg2);border:1px solid var(--brd);color:var(--t2);font-family:var(--ff);font-size:.85rem;font-weight:600;cursor:pointer;transition:var(--fast)}
+.pm-sz:hover{border-color:var(--ac2);color:var(--ac2)}
+.pm-sz.sel{background:rgba(124,58,237,.15);border-color:var(--ac2);color:var(--ac2)}
+.pm-atc{width:100%;padding:14px;border-radius:var(--r2);background:var(--grad);border:none;color:#fff;font-family:var(--ff);font-size:1rem;font-weight:600;cursor:pointer;transition:var(--smooth)}
+.pm-atc:disabled{opacity:.4;cursor:not-allowed}
+/* Size quick-picker in admin form */
+.sz-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.sz-preset{padding:5px 12px;border-radius:6px;background:var(--bg3);border:1px solid var(--brd);color:var(--t2);font-size:.75rem;font-weight:600;cursor:pointer;transition:var(--fast)}
+.sz-preset:hover{border-color:var(--ac2);color:var(--ac2)}
 .no-res{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--t3)}
 
 /* CART SIDEBAR */
@@ -365,7 +387,7 @@ const DEF_PRODUCTS = [
   {id:1,name:'FOOTGEAR',cat:'Shoes',price:2500,sizes:'S,M,L,XL',desc:'the best shoes for summer',image:'shoes.pnj.webp',icon:'',color:'#1a1a2e',stock:10},
 ];
 const DEF_SETTINGS = { storeName:'AmineStore', storeTag:'Premium Fashion Store', currency:'DZA', logoImg:'AmineStore.png', favicon:'', siteUrl:'https://aminestoredz.netlify.app/', phone:'+213673712323', email:'aminedjaghout0@gmail.com', storeAddress:'', facebook:'', instagram:'', tiktok:'', twitter:'', announcement:'', announcementOn:false, shippingFee:0, aboutUs:'We sell premium streetwear clothing.' };
-const DEF_PW = 'djaghout123';
+const DEF_PW = 'admin123';
 const DEF_CATS = ['All','T-Shirts','Jackets','Pants','Hoodies','Shoes','Dresses','Accessories'];
 
 // ===================== STATE =====================
@@ -470,11 +492,105 @@ function renderPCard(p,i){
       <div class="pcard-cat">${p.cat}</div>
       ${szArr.length?`<div class="pcard-sizes">${szArr.map(s=>`<span class="pcard-sz">${s.trim()}</span>`).join('')}</div>`:''}
       <div class="pcard-price">${settings.currency}${p.price.toFixed(2)}</div>
-      <button class="pcard-btn${inC?' added':''}${oos?' out':''}" onclick="addToCart(${p.id})">
-        ${oos?t('outStock'):inC?'✓ '+t('inCart'):t('addCart')}
+      <button class="pcard-btn${oos?' out':''}" onclick="${oos?'':('openProductModal('+p.id+')')}">
+        ${oos?t('outStock'):'🔍 View Product'}
       </button>
     </div>
   </div>`;
+}
+
+// ===================== CATEGORY SIZE MAP =====================
+const CAT_SIZES = {
+  'Shirts':      'XS,S,M,L,XL,XXL,3XL',
+  'T-Shirts':    'XS,S,M,L,XL,XXL,3XL',
+  'Hoodies':     'XS,S,M,L,XL,XXL,3XL',
+  'Jackets':     'XS,S,M,L,XL,XXL,3XL',
+  'Coats':       'XS,S,M,L,XL,XXL,3XL',
+  'Sweaters':    'XS,S,M,L,XL,XXL,3XL',
+  'Polos':       'XS,S,M,L,XL,XXL,3XL',
+  'Pants':       '28,30,32,34,36,38,40,42',
+  'Jeans':       '28,30,32,34,36,38,40,42',
+  'Shorts':      'XS,S,M,L,XL,XXL',
+  'Joggers':     'XS,S,M,L,XL,XXL',
+  'Shoes':       '36,37,38,39,40,41,42,43,44,45,46',
+  'Sneakers':    '36,37,38,39,40,41,42,43,44,45,46',
+  'Boots':       '36,37,38,39,40,41,42,43,44,45,46',
+  'Sandals':     '36,37,38,39,40,41,42,43,44,45,46',
+  'Slippers':    '36,37,38,39,40,41,42,43,44,45,46',
+  'Socks':       '36-38,39-42,43-46',
+  'Underwear':   'XS,S,M,L,XL,XXL',
+  'Bras':        '70A,70B,70C,75A,75B,75C,80A,80B,80C,85B,85C,90B,90C',
+  'Dresses':     'XS,S,M,L,XL,XXL',
+  'Skirts':      'XS,S,M,L,XL,XXL',
+  'Leggings':    'XS,S,M,L,XL,XXL',
+  'Swimwear':    'XS,S,M,L,XL,XXL',
+  'Sportswear':  'XS,S,M,L,XL,XXL',
+  'Hats':        'S,M,L,XL',
+  'Caps':        'One Size,S,M,L',
+  'Belts':       '70cm,80cm,90cm,100cm,110cm,120cm',
+  'Scarves':     'One Size',
+  'Gloves':      'XS,S,M,L,XL',
+  'Bags':        'One Size',
+  'Backpacks':   'One Size',
+  'Wallets':     'One Size',
+  'Watches':     'One Size',
+  'Jewelry':     'One Size',
+  'Sunglasses':  'One Size',
+};
+
+let pmProductId = null;
+let pmSelectedSize = null;
+
+function openProductModal(id){
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  pmProductId = id;
+  pmSelectedSize = null;
+  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const img = p.image
+    ? `<img src="${p.image}" alt="${p.name}">`
+    : `<div style="font-size:4rem;display:flex;align-items:center;justify-content:center;height:100%">${p.icon||'👕'}</div>`;
+  const sizesHtml = szArr.length ? `
+    <div class="pm-sz-label">Select Size</div>
+    <div class="pm-sizes">${szArr.map(s=>`<button class="pm-sz" onclick="selectPmSize('${s}',this)">${s}</button>`).join('')}</div>
+  ` : '';
+  const needsSize = szArr.length > 0;
+  const inC = cart.find(c=>c.id===id);
+  document.getElementById('pmBox').innerHTML = `
+    <button class="xbtn" style="position:absolute;top:16px;right:16px" onclick="closePM()">✕</button>
+    <div class="pm-img">${img}</div>
+    <div class="pm-name">${p.name}</div>
+    <div class="pm-cat">${p.cat}</div>
+    ${p.desc?`<div class="pm-desc">${p.desc}</div>`:''}
+    <div class="pm-price">${settings.currency}${p.price.toFixed(2)}</div>
+    ${sizesHtml}
+    <button class="pm-atc" id="pmAtcBtn" ${needsSize&&!inC?'disabled':''} onclick="addToCartFromModal()">
+      ${inC?'✓ Already in Cart':'+ Add to Cart'}
+    </button>`;
+  document.getElementById('pmOV').classList.add('open');
+}
+
+function selectPmSize(s, el){
+  pmSelectedSize = s;
+  document.querySelectorAll('.pm-sz').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  const btn = document.getElementById('pmAtcBtn');
+  if(btn){ btn.disabled=false; }
+}
+
+function addToCartFromModal(){
+  const p = products.find(x=>x.id===pmProductId);
+  if(!p) return;
+  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+  if(szArr.length && !pmSelectedSize){ toast('Please select a size'); return; }
+  const ex = cart.find(c=>c.id===pmProductId && c.size===pmSelectedSize);
+  if(ex){ ex.qty++; } else { cart.push({id:pmProductId, qty:1, size:pmSelectedSize||''}); }
+  save('sv_cart',cart); renderProducts(); renderCart(); closePM();
+  toast(t('inCart'));
+}
+
+function closePM(){
+  document.getElementById('pmOV').classList.remove('open');
 }
 
 // ===================== CART =====================
@@ -500,7 +616,7 @@ function renderCart(){
       <div class="c-item-img">${ic}</div>
       <div class="c-item-info">
         <div class="c-item-name">${p.name}</div>
-        <div class="c-item-det">${settings.currency}${p.price.toFixed(2)}</div>
+        <div class="c-item-det">${settings.currency}${p.price.toFixed(2)}${it.size?' · Size: '+it.size:''}</div>
         <div class="c-item-ctrls"><button class="qbtn" onclick="updQty(${p.id},-1)">−</button><span class="c-item-qty">${it.qty}</span><button class="qbtn" onclick="updQty(${p.id},1)">+</button></div>
       </div>
       <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end">
@@ -926,9 +1042,15 @@ function openProductForm(id){
   const catOpts=cats.map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('');
   document.getElementById('formPanel').innerHTML=`<h3>${id?t('edit'):t('addProduct')}</h3>
     <div class="fg"><label class="fl">${t('brand')}</label><input class="fi" id="fName" value="${p?p.name:''}"></div>
-    <div class="fr"><div class="fg"><label class="fl">${t('category')}</label><input class="fi" id="fCat" list="catList" value="${p?p.cat:''}"><datalist id="catList">${catOpts}</datalist></div>
+    <div class="fr"><div class="fg"><label class="fl">${t('category')}</label>
+    <select class="fi" id="fCat" onchange="autoFillSizes(this.value)">
+      <option value="">-- Select Type --</option>
+      ${Object.keys(CAT_SIZES).map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('')}
+      <option value="Other" ${p&&!CAT_SIZES[p.cat]?'selected':''}>Other</option>
+    </select></div>
     <div class="fg"><label class="fl">${t('price')}</label><input class="fi" id="fPrice" type="number" min="0" step=".01" value="${p?p.price:''}"></div></div>
-    <div class="fr"><div class="fg"><label class="fl">${t('sizes')}</label><input class="fi" id="fSizes" value="${p?p.sizes:''}" placeholder="${t('sizePh')}"></div>
+    <div class="fr"><div class="fg"><label class="fl">${t('sizes')}</label><input class="fi" id="fSizes" value="${p?p.sizes:''}" placeholder="Auto-filled by type or enter custom">
+    <div class="sz-presets" id="szPresets"></div></div>
     <div class="fg"><label class="fl">${t('stock')}</label><input class="fi" id="fStock" type="number" min="0" value="${p?p.stock:'10'}"></div></div>
     <div class="fg"><label class="fl">${t('desc')}</label><input class="fi" id="fDesc" value="${p?p.desc:''}"></div>
     <div class="fg"><label class="fl">Emoji</label><input class="fi" id="fIcon" value="${p?p.icon||'':''}" maxlength="4" style="max-width:80px"></div>
@@ -967,6 +1089,11 @@ function saveProduct(){
     products.push({id:newId,name,cat,price,sizes,stock,desc,icon,color,image});
   }
   save('sv_products',products);closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
+}
+
+function autoFillSizes(cat){
+  const map = CAT_SIZES[cat];
+  if(map){ const el=document.getElementById('fSizes'); if(el&&!el.value) el.value=map; }
 }
 
 function editProduct(id){openProductForm(id);}
@@ -1069,5 +1196,9 @@ function startStatsListener(){
 initVisitorTracking();
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<!-- Product Preview Modal -->
+<div class="pm-ov" id="pmOV" onclick="if(event.target===this)closePM()">
+  <div class="pm-box" id="pmBox"></div>
+</div>
 </body>
 </html>
