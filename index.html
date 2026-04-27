@@ -536,7 +536,7 @@ function openProductModal(id){
     ? `<img id="pmMainImg" src="${firstImg}" alt="${p.name}">`
     : `<div style="font-size:4rem;display:flex;align-items:center;justify-content:center;height:100%">${p.icon||'👕'}</div>`;
   const thumbs = pmImages.length > 1
-    ? `<div class="pm-gallery">${pmImages.map((src,idx)=>`<button class="pm-thumb${idx===0?' sel':''}" onclick="setPmImage(${JSON.stringify(src)}, this)"><img src="${src}" alt="${p.name} ${idx+1}"></button>`).join('')}</div>`
+    ? `<div class="pm-gallery">${pmImages.map((src,idx)=>`<button type="button" class="pm-thumb${idx===0?' sel':''}" onclick="setPmImage(${JSON.stringify(src)}, this)"><img src="${src}" alt="${p.name} ${idx+1}"></button>`).join('')}</div>`
     : '';
   const sizesHtml = szArr.length ? `
     <div class="pm-sz-label">Select Size</div>
