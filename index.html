@@ -983,32 +983,31 @@ function switchOrdTab(tab){
 }
 
 async function confirmOrder(id){
-  const o = orders.find(x=>x.id===id);
-  if(!o) return;
-  o.confirmed = true;
-  save('sv_orders', orders);
-  if(window._fbReady){
-    try {
-      await window._db.collection('orders').doc(id).update({confirmed: true});
-    } catch(e){ console.warn('Firebase confirm failed:',e); }
-  }
-  const ordersTab = document.getElementById('atOrders');
-  if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
-  toast('Order confirmed!');
+  if(!window._fbReady) return;
+  try {
+    await window._db.collection('orders').doc(id).update({confirmed: true});
+    // Update local array
+    const o = orders.find(x=>x.id===id);
+    if(o) o.confirmed = true;
+    save('sv_orders', orders);
+    const ordersTab = document.getElementById('atOrders');
+    if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
+    toast('Order confirmed!');
+  } catch(e){ console.error('Confirm failed:',e); toast('Error confirming order'); }
 }
 
 async function deleteOrder(id){
   if(!confirm('Delete this order?')) return;
-  orders = orders.filter(o=>o.id!==id);
-  save('sv_orders', orders);
-  if(window._fbReady){
-    try {
-      await window._db.collection('orders').doc(id).delete();
-    } catch(e){ console.warn('Firebase delete failed:',e); }
-  }
-  const ordersTab = document.getElementById('atOrders');
-  if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
-  toast('Order deleted');
+  if(!window._fbReady) return;
+  try {
+    await window._db.collection('orders').doc(id).delete();
+    // Update local array
+    orders = orders.filter(o=>o.id!==id);
+    save('sv_orders', orders);
+    const ordersTab = document.getElementById('atOrders');
+    if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
+    toast('Order deleted');
+  } catch(e){ console.error('Delete failed:',e); toast('Error deleting order'); }
 }
 
 function saveSettings(){
@@ -1167,21 +1166,30 @@ function initVisitorTracking(){
   if(!window._fbReady) return;
   const rtdb = window._rtdb;
 
-  // Count total visits
-  const totalRef = rtdb.ref('stats/totalVisits');
-  totalRef.transaction(v => (v||0)+1);
+  // Count total visits (only once per session)
+  if(!sessionStorage.getItem('visitCounted')){
+    rtdb.ref('stats/totalVisits').transaction(v => (v||0)+1);
+    sessionStorage.setItem('visitCounted', '1');
+  }
 
-  // Track online users using presence
+  // Track online users - create unique user ID
+  const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
+  const userRef = rtdb.ref('presence/' + userId);
   const onlineRef = rtdb.ref('stats/onlineCount');
-  const userRef = rtdb.ref('presence/' + Date.now() + '_' + Math.random().toString(36).substr(2,6));
 
-  // When user connects, add presence and increment online count
+  // When page loads, increment online count
   userRef.set(true);
-  userRef.onDisconnect().remove();
   onlineRef.transaction(v => (v||0)+1);
-  // Decrement when user leaves
-  const decRef = rtdb.ref('stats/onlineCount');
-  window.addEventListener('beforeunload', ()=>{ decRef.transaction(v=>Math.max(0,(v||1)-1)); });
+
+  // When user leaves/closes tab, decrement
+  userRef.onDisconnect().remove().then(()=>{
+    onlineRef.transaction(v => Math.max(0, (v||1)-1));
+  });
+
+  // Also listen for page unload as backup
+  window.addEventListener('beforeunload', ()=>{
+    onlineRef.transaction(v => Math.max(0, (v||1)-1));
+  });
 }
 
 // Update admin stats display (called when admin is open)
@@ -1203,30 +1211,25 @@ initVisitorTracking();
 async function syncProductsToFirebase(){
   if(!window._fbReady) return;
   try {
-    await window._db.collection('products').doc('_data').set({products, lastSync: new Date().toISOString()});
-  } catch(e){ console.warn('Products sync failed:',e); }
+    await window._db.collection('products').doc('_global').set({products, lastSync: new Date().toISOString()}, {merge: true});
+  } catch(e){ console.error('Products sync failed:',e); }
 }
 
 async function loadProductsFromFirebase(){
   if(!window._fbReady) return;
   try {
-    const snap = await window._db.collection('products').doc('_data').get();
-    if(snap.exists){
-      const data = snap.data();
-      if(data.products && Array.isArray(data.products)){
-        // Merge Firebase products with local (Firebase is source of truth)
-        const fbIds = new Set(data.products.map(p=>p.id));
-        const localOnly = products.filter(p=>!fbIds.has(p.id));
-        products = [...data.products, ...localOnly];
-        save('sv_products', products);
-        renderAll();
-      }
+    const snap = await window._db.collection('products').doc('_global').get();
+    if(snap.exists && snap.data().products){
+      products = snap.data().products;
+      save('sv_products', products);
+      renderAll();
     }
   } catch(e){ console.warn('Products load failed:',e); }
 }
 
-// Load products from Firebase on page load
-window.addEventListener('load', ()=>{ setTimeout(loadProductsFromFirebase, 500); });
+// Load products from Firebase immediately and periodically
+loadProductsFromFirebase();
+setInterval(loadProductsFromFirebase, 3000); // Check every 3 seconds
 
 initVisitorTracking();
 </script>
