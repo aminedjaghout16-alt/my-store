@@ -1088,7 +1088,9 @@ function saveProduct(){
     const newId=products.length?Math.max(...products.map(p=>p.id))+1:1;
     products.push({id:newId,name,cat,price,sizes,stock,desc,icon,color,image});
   }
-  save('sv_products',products);closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
+  save('sv_products',products);
+  syncProductsToFirebase();
+  closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
 }
 
 function autoFillSizes(cat){
@@ -1100,7 +1102,9 @@ function editProduct(id){openProductForm(id);}
 function delProduct(id){
   if(!confirm('Delete this product?'))return;
   products=products.filter(p=>p.id!==id);cart=cart.filter(c=>c.id!==id);
-  save('sv_products',products);save('sv_cart',cart);renderAll();renderAdminPanel();toast('Deleted');
+  save('sv_products',products);save('sv_cart',cart);
+  syncProductsToFirebase();
+  renderAll();renderAdminPanel();toast('Deleted');
 }
 
 
@@ -1192,6 +1196,37 @@ function startStatsListener(){
     if(el) el.textContent = (snap.val()||0).toLocaleString();
   });
 }
+
+initVisitorTracking();
+
+// ===================== PRODUCT SYNC TO FIREBASE =====================
+async function syncProductsToFirebase(){
+  if(!window._fbReady) return;
+  try {
+    await window._db.collection('products').doc('_data').set({products, lastSync: new Date().toISOString()});
+  } catch(e){ console.warn('Products sync failed:',e); }
+}
+
+async function loadProductsFromFirebase(){
+  if(!window._fbReady) return;
+  try {
+    const snap = await window._db.collection('products').doc('_data').get();
+    if(snap.exists){
+      const data = snap.data();
+      if(data.products && Array.isArray(data.products)){
+        // Merge Firebase products with local (Firebase is source of truth)
+        const fbIds = new Set(data.products.map(p=>p.id));
+        const localOnly = products.filter(p=>!fbIds.has(p.id));
+        products = [...data.products, ...localOnly];
+        save('sv_products', products);
+        renderAll();
+      }
+    }
+  } catch(e){ console.warn('Products load failed:',e); }
+}
+
+// Load products from Firebase on page load
+window.addEventListener('load', ()=>{ setTimeout(loadProductsFromFirebase, 500); });
 
 initVisitorTracking();
 </script>
