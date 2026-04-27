@@ -362,7 +362,7 @@ const DEF_PRODUCTS = [
   {id:1,name:'FOOTGEAR',cat:'Shoes',price:2500,sizes:'S,M,L,XL',desc:'the best shoes for summer',image:'shoes.pnj.webp',icon:'',color:'#1a1a2e',stock:10},
 ];
 const DEF_SETTINGS = { storeName:'AmineStore', storeTag:'Premium Fashion Store', currency:'DZA', logoImg:'AmineStore.png', favicon:'', siteUrl:'https://aminestoredz.netlify.app/', phone:'+213673712323', email:'aminedjaghout0@gmail.com', storeAddress:'', facebook:'', instagram:'', tiktok:'', twitter:'', announcement:'', announcementOn:false, shippingFee:0, aboutUs:'We sell premium streetwear clothing.' };
-const DEF_PW = 'barcelona123456789';
+const DEF_PW = 'admin123';
 const DEF_CATS = ['All','T-Shirts','Jackets','Pants','Hoodies','Shoes','Dresses','Accessories'];
 
 // ===================== STATE =====================
@@ -682,8 +682,10 @@ async function openAdmin(){
   renderAdminPanel();
   document.getElementById('adminOV').classList.add('open');
   document.body.style.overflow='hidden';
+  const ordersTab=document.getElementById('atOrders');
+  if(ordersTab) ordersTab.innerHTML='<p style="color:var(--t3);text-align:center;padding:40px">⏳ Loading orders...</p>';
   await loadOrdersFromFirebase();
-  renderAdminPanel();
+  if(ordersTab) ordersTab.innerHTML=renderAdminOrders();
 }
 function closeAdmin(){document.getElementById('adminOV').classList.remove('open');document.body.style.overflow='';}
 
@@ -790,12 +792,20 @@ async function loadOrdersFromFirebase(){
   } catch(e){ console.warn('Firebase load failed:',e); }
 }
 
-function renderAdminOrders(){
-  if(!orders.length) return `<p style="color:var(--t3);text-align:center;padding:40px">${t('noOrders')}</p>`;
-  return orders.slice().reverse().map(o=>{
-    const delLabel = o.deliveryType==='home'?'🏠 Home':'📦 Pickup';
-    return `<div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px;margin-bottom:10px">
-    <div style="display:flex;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px"><strong>${o.id}</strong><span style="font-size:.78rem;color:var(--t3)">${new Date(o.date).toLocaleString()}</span></div>
+function renderOrderCard(o, showConfirmBtn){
+  const delLabel = o.deliveryType==='home'?'🏠 Home':'📦 Pickup';
+  const statusBadge = o.confirmed
+    ? `<span style="background:rgba(16,185,129,.15);color:#10b981;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">✓ Confirmed</span>`
+    : `<span style="background:rgba(245,158,11,.15);color:#f59e0b;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">⏳ Pending</span>`;
+  const confirmBtn = showConfirmBtn
+    ? `<button onclick="confirmOrder('${o.id}')" style="padding:8px 18px;border-radius:8px;background:var(--grn);border:none;color:#fff;font-family:var(--ff);font-size:.82rem;font-weight:700;cursor:pointer">✓ Confirm Order</button>`
+    : '';
+  const deleteBtn = `<button onclick="deleteOrder('${o.id}')" style="padding:8px 18px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;font-family:var(--ff);font-size:.82rem;font-weight:700;cursor:pointer">🗑 Delete</button>`;
+  return `<div style="background:var(--bg2);border:1px solid ${o.confirmed?'rgba(16,185,129,.2)':'var(--brd)'};border-radius:var(--r2);padding:16px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px"><strong>${o.id}</strong>${statusBadge}</div>
+      <span style="font-size:.78rem;color:var(--t3)">${new Date(o.date).toLocaleString()}</span>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.82rem;color:var(--t2);margin-bottom:8px">
       <div>👤 ${o.name||'N/A'}</div>
       <div>📧 ${o.email}</div>
@@ -805,9 +815,72 @@ function renderAdminOrders(){
       <div>${delLabel||'N/A'}</div>
     </div>
     ${o.address?`<div style="font-size:.82rem;color:var(--t2);margin-bottom:8px">📫 ${o.address}</div>`:''}
-    <div style="font-size:.82rem;color:var(--t2);margin-bottom:4px">${o.items.map(it=>`${it.name||'?'} ×${it.qty}`).join(', ')}</div>
-    <div style="display:flex;justify-content:space-between;margin-top:8px"><strong>${settings.currency}${o.total.toFixed(2)}</strong></div>
-  </div>`}).join('');
+    <div style="font-size:.82rem;color:var(--t2);margin-bottom:10px">${o.items.map(it=>`${it.name||'?'} ×${it.qty}`).join(', ')}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <strong style="font-size:1rem">${settings.currency}${o.total.toFixed(2)}</strong>
+      <div style="display:flex;gap:8px">${confirmBtn}${deleteBtn}</div>
+    </div>
+  </div>`;
+}
+
+function renderAdminOrders(){
+  const pending = orders.filter(o=>!o.confirmed);
+  const confirmed = orders.filter(o=>o.confirmed);
+  const pendingHtml = pending.length
+    ? pending.map(o=>renderOrderCard(o,true)).join('')
+    : `<p style="color:var(--t3);text-align:center;padding:30px">No pending orders 🎉</p>`;
+  const confirmedHtml = confirmed.length
+    ? confirmed.map(o=>renderOrderCard(o,false)).join('')
+    : `<p style="color:var(--t3);text-align:center;padding:30px">No confirmed orders yet.</p>`;
+  return `
+    <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--brd)">
+      <button class="a-tab on" id="ordTabPending" onclick="switchOrdTab('pending')" style="display:flex;align-items:center;gap:6px">
+        ⏳ Pending <span style="background:rgba(245,158,11,.2);color:#f59e0b;padding:1px 8px;border-radius:10px;font-size:.72rem">${pending.length}</span>
+      </button>
+      <button class="a-tab" id="ordTabConfirmed" onclick="switchOrdTab('confirmed')" style="display:flex;align-items:center;gap:6px">
+        ✓ Confirmed <span style="background:rgba(16,185,129,.15);color:#10b981;padding:1px 8px;border-radius:10px;font-size:.72rem">${confirmed.length}</span>
+      </button>
+    </div>
+    <div id="ordPending">${pendingHtml}</div>
+    <div id="ordConfirmed" style="display:none">${confirmedHtml}</div>`;
+}
+
+function switchOrdTab(tab){
+  document.getElementById('ordTabPending').classList.toggle('on', tab==='pending');
+  document.getElementById('ordTabConfirmed').classList.toggle('on', tab==='confirmed');
+  document.getElementById('ordPending').style.display = tab==='pending'?'block':'none';
+  document.getElementById('ordConfirmed').style.display = tab==='confirmed'?'block':'none';
+}
+
+async function confirmOrder(id){
+  const o = orders.find(x=>x.id===id);
+  if(!o) return;
+  o.confirmed = true;
+  save('sv_orders', orders);
+  if(window._fbReady){
+    try {
+      const snap = await window._db.collection('orders').where('id','==',id).get();
+      snap.forEach(doc => doc.ref.update({confirmed: true}));
+    } catch(e){ console.warn('Firebase confirm failed:',e); }
+  }
+  const ordersTab = document.getElementById('atOrders');
+  if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
+  toast('Order confirmed!');
+}
+
+async function deleteOrder(id){
+  if(!confirm('Delete this order?')) return;
+  orders = orders.filter(o=>o.id!==id);
+  save('sv_orders', orders);
+  if(window._fbReady){
+    try {
+      const snap = await window._db.collection('orders').where('id','==',id).get();
+      snap.forEach(doc => doc.ref.delete());
+    } catch(e){ console.warn('Firebase delete failed:',e); }
+  }
+  const ordersTab = document.getElementById('atOrders');
+  if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
+  toast('Order deleted');
 }
 
 function saveSettings(){
