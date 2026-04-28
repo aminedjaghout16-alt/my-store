@@ -99,8 +99,6 @@ a{text-decoration:none;color:inherit}
 .pcard-btn:hover{background:var(--grad);color:#fff;border-color:transparent}
 .pcard-btn.added{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:var(--grn)}
 .pcard-btn.out{opacity:.4;cursor:not-allowed;pointer-events:none}
-/* Stats Widget */
-#statsWidget{position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);color:#fff;padding:14px 18px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:99;display:flex;gap:18px;border:1px solid rgba(255,255,255,.1);font-family:var(--ff)}
 .no-res{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--t3)}
 
 /* CART SIDEBAR */
@@ -908,14 +906,10 @@ save('sv_cart',cart);
 renderAll();
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-<!-- Stats Widget -->
-<div id="statsWidget" style="position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);color:#fff;padding:14px 18px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:99;display:flex;gap:18px;border:1px solid rgba(255,255,255,.1)">
-  <div>👁 <span id="totalVisits">0</span> visits</div>
-</div>
-<script>
+
 // ===================== SIMPLE VISIT COUNTER =====================
 function initVisitorTracking(){
-  // Count visits only once per session (using sessionStorage)
+  // Count visits only once per session
   if(!sessionStorage.getItem('visitCounted')){
     let visits = parseInt(localStorage.getItem('sv_visits') || '0');
     visits++;
@@ -923,11 +917,17 @@ function initVisitorTracking(){
     sessionStorage.setItem('visitCounted', '1');
   }
   
-  // Update visits display
+  // Update display
   const visits = localStorage.getItem('sv_visits') || '0';
   const visitsEl = document.getElementById('totalVisits');
   if(visitsEl) visitsEl.textContent = visits;
 }
 
-initVisitorTracking();</script></body>
+initVisitorTracking();
+
+<!-- Stats Widget -->
+<div id="statsWidget" style="position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);color:#fff;padding:14px 18px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:99;display:flex;gap:18px;border:1px solid rgba(255,255,255,.1)">
+  <div>👁 <span id="totalVisits">0</span> visits</div>
+</div>
+</body>
 </html>
