@@ -467,8 +467,8 @@ function renderPCard(p,i){
       <div class="pcard-cat">${p.cat}</div>
       ${szArr.length?`<div class="pcard-sizes">${szArr.map(s=>`<span class="pcard-sz">${s.trim()}</span>`).join('')}</div>`:''}
       <div class="pcard-price">${settings.currency}${p.price.toFixed(2)}</div>
-      <button class="pcard-btn${inC?' added':''}${oos?' out':''}" onclick="addToCart(${p.id})">
-        ${oos?t('outStock'):inC?'✓ '+t('inCart'):t('addCart')}
+      <button class="pcard-btn${oos?' out':''}" onclick="${oos?'':('openPM('+p.id+')')}">
+        ${oos?t('outStock'):'🔍 View Product'}
       </button>
     </div>
   </div>`;
