@@ -99,33 +99,6 @@ a{text-decoration:none;color:inherit}
 .pcard-btn:hover{background:var(--grad);color:#fff;border-color:transparent}
 .pcard-btn.added{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:var(--grn)}
 .pcard-btn.out{opacity:.4;cursor:not-allowed;pointer-events:none}
-/* Product Preview Modal */
-.pm-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:var(--smooth)}
-.pm-ov.open{opacity:1;pointer-events:all}
-.pm-box{background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r3);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:28px;position:relative;transform:translateY(20px);transition:var(--smooth)}
-.pm-ov.open .pm-box{transform:translateY(0)}
-.pm-img{width:100%;height:350px;border-radius:var(--r2);object-fit:cover;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:12px;overflow:hidden}
-.pm-img img{width:100%;height:100%;object-fit:cover}
-.pm-gallery{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:8px}
-.pm-thumb{width:60px;height:60px;border-radius:6px;border:2px solid var(--brd);cursor:pointer;overflow:hidden;flex-shrink:0;transition:var(--fast)}
-.pm-thumb img{width:100%;height:100%;object-fit:cover}
-.pm-thumb.active{border-color:var(--ac2)}
-.pm-thumb:hover{border-color:var(--ac2)}
-.pm-name{font-size:1.4rem;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
-.pm-cat{font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
-.pm-desc{font-size:.88rem;color:var(--t2);line-height:1.6;margin-bottom:16px}
-.pm-price{font-size:1.6rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px}
-.pm-sz-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t2);margin-bottom:10px}
-.pm-sizes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.pm-sz{padding:8px 16px;border-radius:8px;background:var(--bg2);border:1px solid var(--brd);color:var(--t2);font-family:var(--ff);font-size:.85rem;font-weight:600;cursor:pointer;transition:var(--fast)}
-.pm-sz:hover{border-color:var(--ac2);color:var(--ac2)}
-.pm-sz.sel{background:rgba(124,58,237,.15);border-color:var(--ac2);color:var(--ac2)}
-.pm-atc{width:100%;padding:14px;border-radius:var(--r2);background:var(--grad);border:none;color:#fff;font-family:var(--ff);font-size:1rem;font-weight:600;cursor:pointer;transition:var(--smooth)}
-.pm-atc:disabled{opacity:.4;cursor:not-allowed}
-/* Size presets in admin */
-.sz-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.sz-preset{padding:5px 12px;border-radius:6px;background:var(--bg3);border:1px solid var(--brd);color:var(--t2);font-size:.75rem;font-weight:600;cursor:pointer;transition:var(--fast)}
-.sz-preset:hover{border-color:var(--ac2);color:var(--ac2)}
 .no-res{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--t3)}
 
 /* CART SIDEBAR */
@@ -281,6 +254,22 @@ a{text-decoration:none;color:inherit}
 /* RESPONSIVE */
 @media(max-width:768px){.hero h1{font-size:2.2rem}.filters{flex-direction:column}.pgrid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.ftr-in{grid-template-columns:1fr 1fr}.fr{grid-template-columns:1fr}.nav-l.hm{display:none}.a-tbl{font-size:.8rem}.a-tbl th,.a-tbl td{padding:8px 6px}}
 @media(max-width:480px){.pgrid{grid-template-columns:1fr}.ftr-in{grid-template-columns:1fr}}
+
+.pm-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:.3s}
+.pm-ov.open{opacity:1;pointer-events:all}
+.pm-box{background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r3);width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding:24px;position:relative}
+.pm-img{width:100%;height:320px;background:var(--bg2);border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:3rem;margin-bottom:16px;overflow:hidden}
+.pm-img img{width:100%;height:100%;object-fit:contain}
+.pm-gallery{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto}
+.pm-thumb{width:50px;height:50px;border-radius:6px;border:2px solid var(--brd);cursor:pointer;flex-shrink:0}
+.pm-thumb img{width:100%;height:100%;object-fit:cover}
+.pm-thumb.active{border-color:var(--ac2)}
+.pm-name{font-size:1.3rem;font-weight:700;margin-bottom:8px}
+.pm-price{font-size:1.5rem;font-weight:800;color:var(--ac2);margin-bottom:16px}
+.pm-sizes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.pm-sz{padding:8px 14px;border:1px solid var(--brd);border-radius:8px;background:var(--bg2);cursor:pointer;transition:.2s}
+.pm-sz.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+.pm-atc{width:100%;padding:12px;background:var(--grad);border:none;color:#fff;border-radius:8px;font-weight:600;cursor:pointer;font-family:var(--ff)}
 </style>
 </head>
 <body>
@@ -478,121 +467,11 @@ function renderPCard(p,i){
       <div class="pcard-cat">${p.cat}</div>
       ${szArr.length?`<div class="pcard-sizes">${szArr.map(s=>`<span class="pcard-sz">${s.trim()}</span>`).join('')}</div>`:''}
       <div class="pcard-price">${settings.currency}${p.price.toFixed(2)}</div>
-      <button class="pcard-btn${oos?' out':''}" onclick="${oos?'':('openProductModal('+p.id+')')}">
-        ${oos?t('outStock'):'🔍 View Product'}
+      <button class="pcard-btn${inC?' added':''}${oos?' out':''}" onclick="addToCart(${p.id})">
+        ${oos?t('outStock'):inC?'✓ '+t('inCart'):t('addCart')}
       </button>
     </div>
   </div>`;
-}
-
-// ===================== CATEGORY SIZE MAP =====================
-const CAT_SIZES = {
-  'Shirts':      'XS,S,M,L,XL,XXL,3XL',
-  'T-Shirts':    'XS,S,M,L,XL,XXL,3XL',
-  'Hoodies':     'XS,S,M,L,XL,XXL,3XL',
-  'Jackets':     'XS,S,M,L,XL,XXL,3XL',
-  'Coats':       'XS,S,M,L,XL,XXL,3XL',
-  'Sweaters':    'XS,S,M,L,XL,XXL,3XL',
-  'Polos':       'XS,S,M,L,XL,XXL,3XL',
-  'Pants':       '28,30,32,34,36,38,40,42',
-  'Jeans':       '28,30,32,34,36,38,40,42',
-  'Shorts':      'XS,S,M,L,XL,XXL',
-  'Joggers':     'XS,S,M,L,XL,XXL',
-  'Shoes':       '36,37,38,39,40,41,42,43,44,45,46',
-  'Sneakers':    '36,37,38,39,40,41,42,43,44,45,46',
-  'Boots':       '36,37,38,39,40,41,42,43,44,45,46',
-  'Sandals':     '36,37,38,39,40,41,42,43,44,45,46',
-  'Slippers':    '36,37,38,39,40,41,42,43,44,45,46',
-  'Socks':       '36-38,39-42,43-46',
-  'Underwear':   'XS,S,M,L,XL,XXL',
-  'Bras':        '70A,70B,70C,75A,75B,75C,80A,80B,80C,85B,85C,90B,90C',
-  'Dresses':     'XS,S,M,L,XL,XXL',
-  'Skirts':      'XS,S,M,L,XL,XXL',
-  'Leggings':    'XS,S,M,L,XL,XXL',
-  'Swimwear':    'XS,S,M,L,XL,XXL',
-  'Sportswear':  'XS,S,M,L,XL,XXL',
-  'Hats':        'S,M,L,XL',
-  'Caps':        'One Size,S,M,L',
-  'Belts':       '70cm,80cm,90cm,100cm,110cm,120cm',
-  'Scarves':     'One Size',
-  'Gloves':      'XS,S,M,L,XL',
-  'Bags':        'One Size',
-  'Backpacks':   'One Size',
-  'Wallets':     'One Size',
-  'Watches':     'One Size',
-  'Jewelry':     'One Size',
-  'Sunglasses':  'One Size',
-};
-
-let pmProductId = null;
-let pmSelectedSize = null;
-
-function openProductModal(id){
-  const p = products.find(x=>x.id===id);
-  if(!p) return;
-  pmProductId = id;
-  pmSelectedSize = null;
-  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
-  
-  // Handle multiple images
-  const images = p.images && p.images.length ? p.images : (p.image ? [p.image] : []);
-  const mainImg = images.length ? `<img id="pmMainImg" src="${images[0]}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain">` 
-    : `<div style="font-size:4rem;display:flex;align-items:center;justify-content:center;height:100%">${p.icon||'👕'}</div>`;
-  
-  const galleryHtml = images.length > 1 ? `
-    <div class="pm-gallery">
-      ${images.map((img, i)=>`<div class="pm-thumb ${i===0?'active':''}" onclick="switchPmImage('${img}', this)"><img src="${img}" alt=""></div>`).join('')}
-    </div>
-  ` : '';
-  
-  const sizesHtml = szArr.length ? `
-    <div class="pm-sz-label">Select Size</div>
-    <div class="pm-sizes">${szArr.map(s=>`<button class="pm-sz" onclick="selectPmSize('${s}',this)">${s}</button>`).join('')}</div>
-  ` : '';
-  const needsSize = szArr.length > 0;
-  const inC = cart.find(c=>c.id===id);
-  document.getElementById('pmBox').innerHTML = `
-    <button class="xbtn" style="position:absolute;top:16px;right:16px" onclick="closePM()">✕</button>
-    <div class="pm-img">${mainImg}</div>
-    ${galleryHtml}
-    <div class="pm-name">${p.name}</div>
-    <div class="pm-cat">${p.cat}</div>
-    ${p.desc?`<div class="pm-desc">${p.desc}</div>`:''}
-    <div class="pm-price">${settings.currency}${p.price.toFixed(2)}</div>
-    ${sizesHtml}
-    <button class="pm-atc" id="pmAtcBtn" ${needsSize&&!inC?'disabled':''} onclick="addToCartFromModal()">
-      ${inC?'✓ Already in Cart':'+ Add to Cart'}
-    </button>`;
-  document.getElementById('pmOV').classList.add('open');
-}
-
-function switchPmImage(src, el){
-  document.getElementById('pmMainImg').src = src;
-  document.querySelectorAll('.pm-thumb').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function selectPmSize(s, el){
-  pmSelectedSize = s;
-  document.querySelectorAll('.pm-sz').forEach(b=>b.classList.remove('sel'));
-  el.classList.add('sel');
-  const btn = document.getElementById('pmAtcBtn');
-  if(btn){ btn.disabled=false; }
-}
-
-function addToCartFromModal(){
-  const p = products.find(x=>x.id===pmProductId);
-  if(!p) return;
-  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
-  if(szArr.length && !pmSelectedSize){ toast('Please select a size'); return; }
-  const ex = cart.find(c=>c.id===pmProductId && c.size===pmSelectedSize);
-  if(ex){ ex.qty++; } else { cart.push({id:pmProductId, qty:1, size:pmSelectedSize||''}); }
-  save('sv_cart',cart); renderProducts(); renderCart(); closePM();
-  toast(t('inCart'));
-}
-
-function closePM(){
-  document.getElementById('pmOV').classList.remove('open');
 }
 
 // ===================== CART =====================
@@ -618,7 +497,7 @@ function renderCart(){
       <div class="c-item-img">${ic}</div>
       <div class="c-item-info">
         <div class="c-item-name">${p.name}</div>
-        <div class="c-item-det">${settings.currency}${p.price.toFixed(2)}${it.size?' · '+it.size:''}</div>
+        <div class="c-item-det">${settings.currency}${p.price.toFixed(2)}</div>
         <div class="c-item-ctrls"><button class="qbtn" onclick="updQty(${p.id},-1)">−</button><span class="c-item-qty">${it.qty}</span><button class="qbtn" onclick="updQty(${p.id},1)">+</button></div>
       </div>
       <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end">
@@ -937,15 +816,9 @@ function openProductForm(id){
   const catOpts=cats.map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('');
   document.getElementById('formPanel').innerHTML=`<h3>${id?t('edit'):t('addProduct')}</h3>
     <div class="fg"><label class="fl">${t('brand')}</label><input class="fi" id="fName" value="${p?p.name:''}"></div>
-    <div class="fr"><div class="fg"><label class="fl">${t('category')}</label>
-    <select class="fi" id="fCat" onchange="autoFillSizes(this.value)">
-      <option value="">-- Select Type --</option>
-      ${Object.keys(CAT_SIZES).map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('')}
-      <option value="Other" ${p&&!CAT_SIZES[p.cat]?'selected':''}>Other</option>
-    </select></div>
+    <div class="fr"><div class="fg"><label class="fl">${t('category')}</label><input class="fi" id="fCat" list="catList" value="${p?p.cat:''}"><datalist id="catList">${catOpts}</datalist></div>
     <div class="fg"><label class="fl">${t('price')}</label><input class="fi" id="fPrice" type="number" min="0" step=".01" value="${p?p.price:''}"></div></div>
-    <div class="fr"><div class="fg"><label class="fl">${t('sizes')}</label><input class="fi" id="fSizes" value="${p?p.sizes:''}" placeholder="Auto-filled by type or enter custom">
-    <div class="sz-presets" id="szPresets"></div></div>
+    <div class="fr"><div class="fg"><label class="fl">${t('sizes')}</label><input class="fi" id="fSizes" value="${p?p.sizes:''}" placeholder="${t('sizePh')}"></div>
     <div class="fg"><label class="fl">${t('stock')}</label><input class="fi" id="fStock" type="number" min="0" value="${p?p.stock:'10'}"></div></div>
     <div class="fg"><label class="fl">${t('desc')}</label><input class="fi" id="fDesc" value="${p?p.desc:''}"></div>
     <div class="fg"><label class="fl">Emoji</label><input class="fi" id="fIcon" value="${p?p.icon||'':''}" maxlength="4" style="max-width:80px"></div>
@@ -957,8 +830,6 @@ function openProductForm(id){
       </div>
       <div class="img-or">${t('orUrl')}</div>
       <input class="fi" id="fImgUrl" value="${p&&p.image&&!p.image.startsWith('data:')?p.image:''}" placeholder="https://...">
-      <button class="btn" style="padding:8px 12px;font-size:.85rem;margin-top:8px;width:100%" onclick="addMoreImageInput()">+ Add More Images</button>
-      <div id="moreImagesContainer" style="margin-top:8px"></div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:24px"><button class="abtn" onclick="closeForm()">${t('cancel')}</button><button class="abtn pri" onclick="saveProduct()">${t('save')}</button></div>`;
   if(p&&p.image&&p.image.startsWith('data:')) editImgData=p.image;
@@ -975,8 +846,6 @@ function saveProduct(){
   const icon=document.getElementById('fIcon').value.trim()||'👕';
   const color=document.getElementById('fColor').value;
   const imgUrl=document.getElementById('fImgUrl').value.trim();
-  const additionalImgs = getAdditionalImages();
-  const allImages = imgUrl ? [imgUrl, ...additionalImgs] : additionalImgs;
   const image=editImgData||imgUrl||'';
   if(!name){alert('Enter a product name');return;}
   if(isNaN(price)||price<0){alert('Enter a valid price');return;}
@@ -985,14 +854,9 @@ function saveProduct(){
     if(p) Object.assign(p,{name,cat,price,sizes,stock,desc,icon,color,image});
   } else {
     const newId=products.length?Math.max(...products.map(p=>p.id))+1:1;
-    products.push({id:newId,name,cat,price,sizes,stock,desc,icon,color,image,images});
+    products.push({id:newId,name,cat,price,sizes,stock,desc,icon,color,image});
   }
   save('sv_products',products);closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
-}
-
-function autoFillSizes(cat){
-  const map = CAT_SIZES[cat];
-  if(map){ const el=document.getElementById('fSizes'); if(el&&!el.value) el.value=map; }
 }
 
 function editProduct(id){openProductForm(id);}
@@ -1011,22 +875,6 @@ function handleFile(f){
   if(f.size>2*1024*1024){alert('Max 2MB');return;}
   if(!f.type.startsWith('image/')){alert('Image only');return;}
   const r=new FileReader();r.onload=e=>{editImgData=e.target.result;showPrev(e.target.result);document.getElementById('fImgUrl').value='';};r.readAsDataURL(f);
-}
-
-function addMoreImageInput(){
-  const container = document.getElementById('moreImagesContainer');
-  const count = container.children.length;
-  const newDiv = document.createElement('div');
-  newDiv.style.marginTop = '8px';
-  newDiv.innerHTML = `<input class="fi" type="text" placeholder="Image URL ${count+2}" style="margin-bottom:8px">`;
-  container.appendChild(newDiv);
-}
-
-function getAdditionalImages(){
-  const container = document.getElementById('moreImagesContainer');
-  const inputs = container.querySelectorAll('input');
-  return Array.from(inputs).map(i=>i.value.trim()).filter(Boolean);
-}
 }
 function showPrev(src){const a=document.getElementById('imgUp');a.classList.add('has');a.innerHTML=`<input type="file" id="imgFI" accept="image/*" onchange="handleImg(event)"><img class="pv" src="${src}"><button class="rm" onclick="event.stopPropagation();resetImg()">✕</button>`;}
 function resetImg(){editImgData='';const a=document.getElementById('imgUp');a.classList.remove('has');a.innerHTML=`<input type="file" id="imgFI" accept="image/*" onchange="handleImg(event)"><div class="ut">${t('uploadTxt')}</div>`;}
@@ -1073,34 +921,37 @@ if(settings.favicon){let link=document.querySelector("link[rel~='icon']");if(!li
 save('sv_cart',cart);
 renderAll();
 </script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-
-// ===================== SIMPLE VISIT COUNTER =====================
-function initVisitorTracking(){
-  // Count visits only once per session
-  if(!sessionStorage.getItem('visitCounted')){
-    let visits = parseInt(localStorage.getItem('sv_visits') || '0');
-    visits++;
-    localStorage.setItem('sv_visits', visits);
-    sessionStorage.setItem('visitCounted', '1');
-  }
-  
-  // Update display
-  const visits = localStorage.getItem('sv_visits') || '0';
-  const visitsEl = document.getElementById('totalVisits');
-  if(visitsEl) visitsEl.textContent = visits;
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous">
+let pmPid = null, pmSize = null;
+function openPM(id){
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  pmPid = id; pmSize = null;
+  const imgs = p.images || (p.image ? [p.image] : []);
+  const imgHtml = imgs.length ? `<img id="pmImg" src="${imgs[0]}" alt="">` : `<div style="font-size:3rem">${p.icon||'👕'}</div>`;
+  const galHtml = imgs.length > 1 ? `<div class="pm-gallery">${imgs.map((i,idx)=>`<div class="pm-thumb${idx===0?' active':''}" onclick="switchImg('${i}',this)"><img src="${i}" alt=""></div>`).join('')}</div>` : '';
+  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const szHtml = szArr.length ? `<div class="pm-sizes">${szArr.map(s=>`<button class="pm-sz" onclick="pmSize='${s}';document.querySelectorAll('.pm-sz').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${s}</button>`).join('')}</div>` : '';
+  document.getElementById('pmBox').innerHTML=`<button class="xbtn" style="position:absolute;top:12px;right:12px" onclick="closePM()">✕</button><div class="pm-img">${imgHtml}</div>${galHtml}<div class="pm-name">${p.name}</div><div class="pm-price">${settings.currency}${p.price.toFixed(2)}</div>${szHtml}<button class="pm-atc" onclick="addFromPM()">+ Add to Cart</button>`;
+  document.getElementById('pmOV').classList.add('open');
 }
-
-initVisitorTracking();
-
-<!-- Product Preview Modal -->
-<div class="pm-ov" id="pmOV" onclick="if(event.target===this)closePM()">
-  <div class="pm-box" id="pmBox"></div>
-</div>
-
-<!-- Stats Widget -->
-<div id="statsWidget" style="position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);color:#fff;padding:14px 18px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:99;display:flex;gap:18px;border:1px solid rgba(255,255,255,.1)">
-  <div>👁 <span id="totalVisits">0</span> visits</div>
-</div>
-</body>
+function switchImg(src,el){
+  document.getElementById('pmImg').src=src;
+  document.querySelectorAll('.pm-thumb').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function closePM(){
+  document.getElementById('pmOV').classList.remove('open');
+}
+function addFromPM(){
+  const p = products.find(x=>x.id===pmPid);
+  if(!p) return;
+  const sz = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+  if(sz.length && !pmSize){ toast('Select size'); return; }
+  const ex = cart.find(c=>c.id===pmPid && c.size===pmSize);
+  if(ex) ex.qty++; else cart.push({id:pmPid,qty:1,size:pmSize||''});
+  save('sv_cart',cart); renderProducts(); renderCart(); closePM(); toast('Added!');
+}
+</script>
+<div class="pm-ov" id="pmOV" onclick="if(event.target===this) closePM()"><div class="pm-box" id="pmBox"></div></div></body>
 </html>
