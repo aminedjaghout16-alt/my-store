@@ -475,6 +475,36 @@ function renderPCard(p,i){
 }
 
 // ===================== CART =====================
+function openPM(id){
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  pmPid = id; pmSize = null;
+  const imgs = p.images || (p.image ? [p.image] : []);
+  const imgHtml = imgs.length ? `<img id="pmImg" src="${imgs[0]}" alt="">` : `<div style="font-size:3rem">${p.icon||'👕'}</div>`;
+  const galHtml = imgs.length > 1 ? `<div class="pm-gallery">${imgs.map((i,idx)=>`<div class="pm-thumb${idx===0?' active':''}" onclick="switchImg('${i}',this)"><img src="${i}" alt=""></div>`).join('')}</div>` : '';
+  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const szHtml = szArr.length ? `<div class="pm-sizes">${szArr.map(s=>`<button class="pm-sz" onclick="pmSize='${s}';document.querySelectorAll('.pm-sz').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${s}</button>`).join('')}</div>` : '';
+  document.getElementById('pmBox').innerHTML=`<button class="xbtn" style="position:absolute;top:12px;right:12px" onclick="closePM()">✕</button><div class="pm-img">${imgHtml}</div>${galHtml}<div class="pm-name">${p.name}</div><div class="pm-price">${settings.currency}${p.price.toFixed(2)}</div>${szHtml}<button class="pm-atc" onclick="addFromPM()">+ Add to Cart</button>`;
+  document.getElementById('pmOV').classList.add('open');
+}
+function switchImg(src,el){
+  document.getElementById('pmImg').src=src;
+  document.querySelectorAll('.pm-thumb').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function closePM(){
+  document.getElementById('pmOV').classList.remove('open');
+}
+function addFromPM(){
+  const p = products.find(x=>x.id===pmPid);
+  if(!p) return;
+  const sz = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+  if(sz.length && !pmSize){ toast('Select size'); return; }
+  const ex = cart.find(c=>c.id===pmPid && c.size===pmSize);
+  if(ex) ex.qty++; else cart.push({id:pmPid,qty:1,size:pmSize||''});
+  save('sv_cart',cart); renderProducts(); renderCart(); closePM(); toast('Added!');
+}
+
 function addToCart(id){
   const p=products.find(x=>x.id===id); if(!p||(p.stock!==undefined&&p.stock<=0))return;
   const ex=cart.find(c=>c.id===id);
@@ -923,35 +953,7 @@ renderAll();
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous">
 let pmPid = null, pmSize = null;
-function openPM(id){
-  const p = products.find(x=>x.id===id);
-  if(!p) return;
-  pmPid = id; pmSize = null;
-  const imgs = p.images || (p.image ? [p.image] : []);
-  const imgHtml = imgs.length ? `<img id="pmImg" src="${imgs[0]}" alt="">` : `<div style="font-size:3rem">${p.icon||'👕'}</div>`;
-  const galHtml = imgs.length > 1 ? `<div class="pm-gallery">${imgs.map((i,idx)=>`<div class="pm-thumb${idx===0?' active':''}" onclick="switchImg('${i}',this)"><img src="${i}" alt=""></div>`).join('')}</div>` : '';
-  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const szHtml = szArr.length ? `<div class="pm-sizes">${szArr.map(s=>`<button class="pm-sz" onclick="pmSize='${s}';document.querySelectorAll('.pm-sz').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${s}</button>`).join('')}</div>` : '';
-  document.getElementById('pmBox').innerHTML=`<button class="xbtn" style="position:absolute;top:12px;right:12px" onclick="closePM()">✕</button><div class="pm-img">${imgHtml}</div>${galHtml}<div class="pm-name">${p.name}</div><div class="pm-price">${settings.currency}${p.price.toFixed(2)}</div>${szHtml}<button class="pm-atc" onclick="addFromPM()">+ Add to Cart</button>`;
-  document.getElementById('pmOV').classList.add('open');
-}
-function switchImg(src,el){
-  document.getElementById('pmImg').src=src;
-  document.querySelectorAll('.pm-thumb').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-}
-function closePM(){
-  document.getElementById('pmOV').classList.remove('open');
-}
-function addFromPM(){
-  const p = products.find(x=>x.id===pmPid);
-  if(!p) return;
-  const sz = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
-  if(sz.length && !pmSize){ toast('Select size'); return; }
-  const ex = cart.find(c=>c.id===pmPid && c.size===pmSize);
-  if(ex) ex.qty++; else cart.push({id:pmPid,qty:1,size:pmSize||''});
-  save('sv_cart',cart); renderProducts(); renderCart(); closePM(); toast('Added!');
-}
+
 </script>
 <div class="pm-ov" id="pmOV" onclick="if(event.target===this) closePM()"><div class="pm-box" id="pmBox"></div></div></body>
 </html>
