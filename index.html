@@ -23,6 +23,7 @@
   window._db = firebase.firestore();
   window._rtdb = firebase.database();
   window._fbReady = true;
+  console.log('Firebase initialized:', {db: !!window._db, rtdb: !!window._rtdb, databaseURL: window._rtdb?.ref().toString()});
 </script>
 <style>
 /* === BASE === */
@@ -387,7 +388,7 @@ const DEF_PRODUCTS = [
   {id:1,name:'FOOTGEAR',cat:'Shoes',price:2500,sizes:'S,M,L,XL',desc:'the best shoes for summer',image:'shoes.pnj.webp',icon:'',color:'#1a1a2e',stock:10},
 ];
 const DEF_SETTINGS = { storeName:'AmineStore', storeTag:'Premium Fashion Store', currency:'DZA', logoImg:'AmineStore.png', favicon:'', siteUrl:'https://aminestoredz.netlify.app/', phone:'+213673712323', email:'aminedjaghout0@gmail.com', storeAddress:'', facebook:'', instagram:'', tiktok:'', twitter:'', announcement:'', announcementOn:false, shippingFee:0, aboutUs:'We sell premium streetwear clothing.' };
-const DEF_PW = 'minou123';
+const DEF_PW = 'admin123';
 const DEF_CATS = ['All','T-Shirts','Jackets','Pants','Hoodies','Shoes','Dresses','Accessories'];
 
 // ===================== STATE =====================
@@ -1152,7 +1153,10 @@ renderAll();
 
 // ===================== VISITOR TRACKING =====================
 function initVisitorTracking(){
-  if(!window._fbReady) return;
+  if(!window._fbReady || !window._rtdb){
+    console.warn('Firebase not ready for visitor tracking');
+    return;
+  }
   const rtdb = window._rtdb;
 
   // Count total visits (only once per session)
@@ -1171,7 +1175,7 @@ function startStatsListener(){
   });
 }
 
-initVisitorTracking();
+initVisitorTracking().catch(e=>console.warn('Visitor init failed:', e));
 
 // ===================== PRODUCT SYNC TO FIREBASE =====================
 async function syncProductsToFirebase(){
@@ -1197,7 +1201,7 @@ async function loadProductsFromFirebase(){
 loadProductsFromFirebase();
 setInterval(loadProductsFromFirebase, 3000); // Check every 3 seconds
 
-initVisitorTracking();
+initVisitorTracking().catch(e=>console.warn('Visitor init failed:', e));
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <!-- Product Preview Modal -->
