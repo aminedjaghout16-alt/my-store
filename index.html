@@ -910,19 +910,46 @@ renderAll();
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <!-- Stats Widget -->
 <div id="statsWidget" style="position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);color:#fff;padding:14px 18px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:99;display:flex;gap:18px;border:1px solid rgba(255,255,255,.1)">
+  <div>🟢 <span id="onlineNow">—</span> online</div>
   <div>👁 <span id="totalVisits">0</span> visits</div>
 </div>
 <script>
-// ===================== SIMPLE VISITOR COUNTER =====================
+// ===================== VISITOR TRACKER WITH ONLINE COUNT =====================
 function initVisitorTracking(){
   // Count visits using localStorage
   let visits = parseInt(localStorage.getItem('sv_visits') || '0');
   visits++;
   localStorage.setItem('sv_visits', visits);
   
-  // Update display
-  const el = document.getElementById('totalVisits');
-  if(el) el.textContent = visits;
+  // Update visits display
+  const visitsEl = document.getElementById('totalVisits');
+  if(visitsEl) visitsEl.textContent = visits;
+
+  // Track online users with Firebase
+  if(!window._fbReady || !window._rtdb) {
+    console.warn('Firebase not ready for online tracking');
+    return;
+  }
+
+  const rtdb = window._rtdb;
+  const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
+  const userRef = rtdb.ref('online/' + userId);
+
+  // Add user to online list
+  userRef.set(true);
+
+  // Remove user when they leave/close tab
+  userRef.onDisconnect().remove();
+  window.addEventListener('beforeunload', () => {
+    userRef.set(null);
+  });
+
+  // Listen to online count
+  rtdb.ref('online').on('value', snap => {
+    const count = snap.numChildren();
+    const onlineEl = document.getElementById('onlineNow');
+    if(onlineEl) onlineEl.textContent = count;
+  });
 }
 
 initVisitorTracking();</script></body>
