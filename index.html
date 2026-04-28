@@ -957,6 +957,8 @@ function openProductForm(id){
       </div>
       <div class="img-or">${t('orUrl')}</div>
       <input class="fi" id="fImgUrl" value="${p&&p.image&&!p.image.startsWith('data:')?p.image:''}" placeholder="https://...">
+      <button class="btn" style="padding:8px 12px;font-size:.85rem;margin-top:8px;width:100%" onclick="addMoreImageInput()">+ Add More Images</button>
+      <div id="moreImagesContainer" style="margin-top:8px"></div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:24px"><button class="abtn" onclick="closeForm()">${t('cancel')}</button><button class="abtn pri" onclick="saveProduct()">${t('save')}</button></div>`;
   if(p&&p.image&&p.image.startsWith('data:')) editImgData=p.image;
@@ -973,6 +975,8 @@ function saveProduct(){
   const icon=document.getElementById('fIcon').value.trim()||'👕';
   const color=document.getElementById('fColor').value;
   const imgUrl=document.getElementById('fImgUrl').value.trim();
+  const additionalImgs = getAdditionalImages();
+  const allImages = imgUrl ? [imgUrl, ...additionalImgs] : additionalImgs;
   const image=editImgData||imgUrl||'';
   if(!name){alert('Enter a product name');return;}
   if(isNaN(price)||price<0){alert('Enter a valid price');return;}
@@ -1007,6 +1011,22 @@ function handleFile(f){
   if(f.size>2*1024*1024){alert('Max 2MB');return;}
   if(!f.type.startsWith('image/')){alert('Image only');return;}
   const r=new FileReader();r.onload=e=>{editImgData=e.target.result;showPrev(e.target.result);document.getElementById('fImgUrl').value='';};r.readAsDataURL(f);
+}
+
+function addMoreImageInput(){
+  const container = document.getElementById('moreImagesContainer');
+  const count = container.children.length;
+  const newDiv = document.createElement('div');
+  newDiv.style.marginTop = '8px';
+  newDiv.innerHTML = `<input class="fi" type="text" placeholder="Image URL ${count+2}" style="margin-bottom:8px">`;
+  container.appendChild(newDiv);
+}
+
+function getAdditionalImages(){
+  const container = document.getElementById('moreImagesContainer');
+  const inputs = container.querySelectorAll('input');
+  return Array.from(inputs).map(i=>i.value.trim()).filter(Boolean);
+}
 }
 function showPrev(src){const a=document.getElementById('imgUp');a.classList.add('has');a.innerHTML=`<input type="file" id="imgFI" accept="image/*" onchange="handleImg(event)"><img class="pv" src="${src}"><button class="rm" onclick="event.stopPropagation();resetImg()">✕</button>`;}
 function resetImg(){editImgData='';const a=document.getElementById('imgUp');a.classList.remove('has');a.innerHTML=`<input type="file" id="imgFI" accept="image/*" onchange="handleImg(event)"><div class="ut">${t('uploadTxt')}</div>`;}
