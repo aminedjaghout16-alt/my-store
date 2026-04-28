@@ -916,12 +916,16 @@ renderAll();
 <script>
 // ===================== VISITOR TRACKER WITH ONLINE COUNT =====================
 function initVisitorTracking(){
-  // Count visits using localStorage
-  let visits = parseInt(localStorage.getItem('sv_visits') || '0');
-  visits++;
-  localStorage.setItem('sv_visits', visits);
+  // Count visits only once per session (using sessionStorage)
+  if(!sessionStorage.getItem('visitCounted')){
+    let visits = parseInt(localStorage.getItem('sv_visits') || '0');
+    visits++;
+    localStorage.setItem('sv_visits', visits);
+    sessionStorage.setItem('visitCounted', '1');
+  }
   
   // Update visits display
+  const visits = localStorage.getItem('sv_visits') || '0';
   const visitsEl = document.getElementById('totalVisits');
   if(visitsEl) visitsEl.textContent = visits;
 
