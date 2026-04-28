@@ -1152,26 +1152,62 @@ save('sv_cart',cart);
 renderAll();
 
 // ===================== VISITOR TRACKING =====================
-function initVisitorTracking(){
-  if(!window._fbReady || !window._rtdb){
-    console.warn('Firebase not ready for visitor tracking');
-    return;
-  }
-  const rtdb = window._rtdb;
-
+async function initVisitorTracking(){
+  if(!window._fbReady) return;
+  const db = window._db;
+  
   // Count total visits (only once per session)
   if(!sessionStorage.getItem('visitCounted')){
-    rtdb.ref('stats/totalVisits').transaction(v => (v||0)+1);
-    sessionStorage.setItem('visitCounted', '1');
+    try {
+      console.log('Incrementing visit count...');
+      await db.collection('stats').doc('_global').set(
+        {totalVisits: firebase.firestore.FieldValue.increment(1)}, 
+        {merge: true}
+      );
+      sessionStorage.setItem('visitCounted', '1');
+      console.log('Visit count incremented');
+    } catch(e){ console.error('Visit count failed:', e); }
   }
+
+  // Track online users
+  const userId = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+  const userRef = db.collection('presence').doc(userId);
+  
+  try {
+    await userRef.set({online: true, time: new Date()});
+    window.addEventListener('beforeunload', () => userRef.delete());
+  } catch(e){ console.error('Presence track failed:', e); }
+
+  // Update online count every 2 seconds
+  setInterval(async () => {
+    try {
+      const snap = await db.collection('presence').where('online', '==', true).get();
+      const onlineCount = snap.size;
+      await db.collection('stats').doc('_global').set({onlineCount}, {merge: true});
+    } catch(e){ console.warn('Online count update failed:', e); }
+  }, 2000);
+
+  // Listen to stats and update display
+  console.log('Setting up stats listener...');
+  db.collection('stats').doc('_global').onSnapshot(doc => {
+    const data = doc.data() || {};
+    console.log('Stats updated:', data);
+    const onlineEl = document.getElementById('statOnlineSite');
+    const totalEl = document.getElementById('statTotalSite');
+    if(onlineEl) onlineEl.textContent = data.onlineCount || '0';
+    if(totalEl) totalEl.textContent = data.totalVisits || '0';
+  }, err => {
+    console.error('Stats listener error:', err.message);
+  });
 }
 
 // Update admin stats display (called when admin is open)
 function startStatsListener(){
-  if(!window._fbReady || !window._rtdb) return;
-  window._rtdb.ref('stats/totalVisits').on('value', snap=>{
-    const el = document.getElementById('statTotal');
-    if(el) el.textContent = (snap.val()||0).toLocaleString();
+  if(!window._fbReady) return;
+  window._db.collection('stats').doc('_global').onSnapshot(doc => {
+    const data = doc.data() || {};
+    const onlineEl = document.getElementById('statTotal');
+    if(onlineEl) onlineEl.textContent = (data.totalVisits || 0).toLocaleString();
   });
 }
 
