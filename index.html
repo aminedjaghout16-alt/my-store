@@ -5,26 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Store</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<!-- Firebase compat (works with regular JS) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBwGygunwwrPa60-qp9MFVo6EoUZFFOw1E",
-    authDomain: "aminestore-42df8.firebaseapp.com",
-    projectId: "aminestore-42df8",
-    storageBucket: "aminestore-42df8.firebasestorage.app",
-    messagingSenderId: "394293607796",
-    appId: "1:394293607796:web:43fd6d095204214fe2c021",
-    databaseURL: "https://aminestore-42df8-default-rtdb.firebaseio.com"
-  };
-  firebase.initializeApp(firebaseConfig);
-  window._db = firebase.firestore();
-  window._rtdb = firebase.database();
-  window._fbReady = true;
-  console.log('Firebase initialized:', {db: !!window._db, rtdb: !!window._rtdb, databaseURL: window._rtdb?.ref().toString()});
-</script>
 <style>
 /* === BASE === */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -119,28 +99,8 @@ a{text-decoration:none;color:inherit}
 .pcard-btn:hover{background:var(--grad);color:#fff;border-color:transparent}
 .pcard-btn.added{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.25);color:var(--grn)}
 .pcard-btn.out{opacity:.4;cursor:not-allowed;pointer-events:none}
-/* Product Preview Modal */
-.pm-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:var(--smooth)}
-.pm-ov.open{opacity:1;pointer-events:all}
-.pm-box{background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r3);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:28px;position:relative;transform:translateY(20px);transition:var(--smooth)}
-.pm-ov.open .pm-box{transform:translateY(0)}
-.pm-img{width:100%;height:280px;border-radius:var(--r2);object-fit:cover;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:20px;overflow:hidden}
-.pm-img img{width:100%;height:100%;object-fit:cover}
-.pm-name{font-size:1.4rem;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
-.pm-cat{font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
-.pm-desc{font-size:.88rem;color:var(--t2);line-height:1.6;margin-bottom:16px}
-.pm-price{font-size:1.6rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px}
-.pm-sz-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t2);margin-bottom:10px}
-.pm-sizes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.pm-sz{padding:8px 16px;border-radius:8px;background:var(--bg2);border:1px solid var(--brd);color:var(--t2);font-family:var(--ff);font-size:.85rem;font-weight:600;cursor:pointer;transition:var(--fast)}
-.pm-sz:hover{border-color:var(--ac2);color:var(--ac2)}
-.pm-sz.sel{background:rgba(124,58,237,.15);border-color:var(--ac2);color:var(--ac2)}
-.pm-atc{width:100%;padding:14px;border-radius:var(--r2);background:var(--grad);border:none;color:#fff;font-family:var(--ff);font-size:1rem;font-weight:600;cursor:pointer;transition:var(--smooth)}
-.pm-atc:disabled{opacity:.4;cursor:not-allowed}
-/* Size quick-picker in admin form */
-.sz-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.sz-preset{padding:5px 12px;border-radius:6px;background:var(--bg3);border:1px solid var(--brd);color:var(--t2);font-size:.75rem;font-weight:600;cursor:pointer;transition:var(--fast)}
-.sz-preset:hover{border-color:var(--ac2);color:var(--ac2)}
+/* Stats Widget */
+#statsWidget{position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);color:#fff;padding:14px 18px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:99;display:flex;gap:18px;border:1px solid rgba(255,255,255,.1);font-family:var(--ff)}
 .no-res{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--t3)}
 
 /* CART SIDEBAR */
@@ -493,105 +453,11 @@ function renderPCard(p,i){
       <div class="pcard-cat">${p.cat}</div>
       ${szArr.length?`<div class="pcard-sizes">${szArr.map(s=>`<span class="pcard-sz">${s.trim()}</span>`).join('')}</div>`:''}
       <div class="pcard-price">${settings.currency}${p.price.toFixed(2)}</div>
-      <button class="pcard-btn${oos?' out':''}" onclick="${oos?'':('openProductModal('+p.id+')')}">
-        ${oos?t('outStock'):'🔍 View Product'}
+      <button class="pcard-btn${inC?' added':''}${oos?' out':''}" onclick="addToCart(${p.id})">
+        ${oos?t('outStock'):inC?'✓ '+t('inCart'):t('addCart')}
       </button>
     </div>
   </div>`;
-}
-
-// ===================== CATEGORY SIZE MAP =====================
-const CAT_SIZES = {
-  'Shirts':      'XS,S,M,L,XL,XXL,3XL',
-  'T-Shirts':    'XS,S,M,L,XL,XXL,3XL',
-  'Hoodies':     'XS,S,M,L,XL,XXL,3XL',
-  'Jackets':     'XS,S,M,L,XL,XXL,3XL',
-  'Coats':       'XS,S,M,L,XL,XXL,3XL',
-  'Sweaters':    'XS,S,M,L,XL,XXL,3XL',
-  'Polos':       'XS,S,M,L,XL,XXL,3XL',
-  'Pants':       '28,30,32,34,36,38,40,42',
-  'Jeans':       '28,30,32,34,36,38,40,42',
-  'Shorts':      'XS,S,M,L,XL,XXL',
-  'Joggers':     'XS,S,M,L,XL,XXL',
-  'Shoes':       '36,37,38,39,40,41,42,43,44,45,46',
-  'Sneakers':    '36,37,38,39,40,41,42,43,44,45,46',
-  'Boots':       '36,37,38,39,40,41,42,43,44,45,46',
-  'Sandals':     '36,37,38,39,40,41,42,43,44,45,46',
-  'Slippers':    '36,37,38,39,40,41,42,43,44,45,46',
-  'Socks':       '36-38,39-42,43-46',
-  'Underwear':   'XS,S,M,L,XL,XXL',
-  'Bras':        '70A,70B,70C,75A,75B,75C,80A,80B,80C,85B,85C,90B,90C',
-  'Dresses':     'XS,S,M,L,XL,XXL',
-  'Skirts':      'XS,S,M,L,XL,XXL',
-  'Leggings':    'XS,S,M,L,XL,XXL',
-  'Swimwear':    'XS,S,M,L,XL,XXL',
-  'Sportswear':  'XS,S,M,L,XL,XXL',
-  'Hats':        'S,M,L,XL',
-  'Caps':        'One Size,S,M,L',
-  'Belts':       '70cm,80cm,90cm,100cm,110cm,120cm',
-  'Scarves':     'One Size',
-  'Gloves':      'XS,S,M,L,XL',
-  'Bags':        'One Size',
-  'Backpacks':   'One Size',
-  'Wallets':     'One Size',
-  'Watches':     'One Size',
-  'Jewelry':     'One Size',
-  'Sunglasses':  'One Size',
-};
-
-let pmProductId = null;
-let pmSelectedSize = null;
-
-function openProductModal(id){
-  const p = products.find(x=>x.id===id);
-  if(!p) return;
-  pmProductId = id;
-  pmSelectedSize = null;
-  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const img = p.image
-    ? `<img src="${p.image}" alt="${p.name}">`
-    : `<div style="font-size:4rem;display:flex;align-items:center;justify-content:center;height:100%">${p.icon||'👕'}</div>`;
-  const sizesHtml = szArr.length ? `
-    <div class="pm-sz-label">Select Size</div>
-    <div class="pm-sizes">${szArr.map(s=>`<button class="pm-sz" onclick="selectPmSize('${s}',this)">${s}</button>`).join('')}</div>
-  ` : '';
-  const needsSize = szArr.length > 0;
-  const inC = cart.find(c=>c.id===id);
-  document.getElementById('pmBox').innerHTML = `
-    <button class="xbtn" style="position:absolute;top:16px;right:16px" onclick="closePM()">✕</button>
-    <div class="pm-img">${img}</div>
-    <div class="pm-name">${p.name}</div>
-    <div class="pm-cat">${p.cat}</div>
-    ${p.desc?`<div class="pm-desc">${p.desc}</div>`:''}
-    <div class="pm-price">${settings.currency}${p.price.toFixed(2)}</div>
-    ${sizesHtml}
-    <button class="pm-atc" id="pmAtcBtn" ${needsSize&&!inC?'disabled':''} onclick="addToCartFromModal()">
-      ${inC?'✓ Already in Cart':'+ Add to Cart'}
-    </button>`;
-  document.getElementById('pmOV').classList.add('open');
-}
-
-function selectPmSize(s, el){
-  pmSelectedSize = s;
-  document.querySelectorAll('.pm-sz').forEach(b=>b.classList.remove('sel'));
-  el.classList.add('sel');
-  const btn = document.getElementById('pmAtcBtn');
-  if(btn){ btn.disabled=false; }
-}
-
-function addToCartFromModal(){
-  const p = products.find(x=>x.id===pmProductId);
-  if(!p) return;
-  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
-  if(szArr.length && !pmSelectedSize){ toast('Please select a size'); return; }
-  const ex = cart.find(c=>c.id===pmProductId && c.size===pmSelectedSize);
-  if(ex){ ex.qty++; } else { cart.push({id:pmProductId, qty:1, size:pmSelectedSize||''}); }
-  save('sv_cart',cart); renderProducts(); renderCart(); closePM();
-  toast(t('inCart'));
-}
-
-function closePM(){
-  document.getElementById('pmOV').classList.remove('open');
 }
 
 // ===================== CART =====================
@@ -617,7 +483,7 @@ function renderCart(){
       <div class="c-item-img">${ic}</div>
       <div class="c-item-info">
         <div class="c-item-name">${p.name}</div>
-        <div class="c-item-det">${settings.currency}${p.price.toFixed(2)}${it.size?' · Size: '+it.size:''}</div>
+        <div class="c-item-det">${settings.currency}${p.price.toFixed(2)}</div>
         <div class="c-item-ctrls"><button class="qbtn" onclick="updQty(${p.id},-1)">−</button><span class="c-item-qty">${it.qty}</span><button class="qbtn" onclick="updQty(${p.id},1)">+</button></div>
       </div>
       <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end">
@@ -703,7 +569,7 @@ function selDel(el,type){
 }
 function closeCheckout(){document.getElementById('checkoutOV').classList.remove('open');document.body.style.overflow='';}
 
-async function placeOrder(){
+function placeOrder(){
   // Validate
   let ok=true;
   const name=document.getElementById('coName');
@@ -732,7 +598,7 @@ async function placeOrder(){
 
   const orderNum='ORD-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substring(2,5).toUpperCase();  const wilayaName=DZ[wilaya.value]?DZ[wilaya.value].n:wilaya.value;
 
-  const newOrder = {
+  orders.push({
     id:orderNum,
     name:name.value.trim(),
     email:email.value.trim(),
@@ -744,15 +610,8 @@ async function placeOrder(){
     items:cart.map(c=>({...c,name:(products.find(p=>p.id===c.id)||{}).name})),
     total,
     date:new Date().toISOString()
-  };
-  orders.push(newOrder);
+  });
   save('sv_orders',orders);
-  // Save to Firebase using order ID as document ID
-  if(window._fbReady){
-    try {
-      await window._db.collection('orders').doc(orderNum).set(newOrder);
-    } catch(e){ console.warn('Firebase save failed:',e); }
-  }
 
   closeCheckout();
   setTimeout(()=>{
@@ -798,26 +657,13 @@ function checkPw(){
 }
 
 // ===================== ADMIN PANEL =====================
-async function openAdmin(){
-  renderAdminPanel();
-  document.getElementById('adminOV').classList.add('open');
-  document.body.style.overflow='hidden';
-  startStatsListener();
-  const ordersTab=document.getElementById('atOrders');
-  if(ordersTab) ordersTab.innerHTML='<p style="color:var(--t3);text-align:center;padding:40px">⏳ Loading orders...</p>';
-  await loadOrdersFromFirebase();
-  if(ordersTab) ordersTab.innerHTML=renderAdminOrders();
-}
+function openAdmin(){renderAdminPanel();document.getElementById('adminOV').classList.add('open');document.body.style.overflow='hidden';}
 function closeAdmin(){document.getElementById('adminOV').classList.remove('open');document.body.style.overflow='';}
 
 function renderAdminPanel(){
   document.getElementById('adminPanel').innerHTML=`
     <div class="a-top"><h2>${t('adminTitle')} <span class="a-tag">Admin</span></h2><button class="xbtn" onclick="closeAdmin()">✕</button></div>
     <div class="a-body">
-      <div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px;text-align:center;margin-bottom:20px">
-        <div style="font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">👁 Total Site Visits</div>
-        <div id="statTotal" style="font-size:2.4rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">—</div>
-      </div>
       <div class="a-tabs">
         <button class="a-tab on" onclick="aTab('products',this)">${t('cards')}</button>        <button class="a-tab" onclick="aTab('settings',this)">${t('settings')}</button>
         <button class="a-tab" onclick="aTab('orders',this)">${t('orders')}</button>
@@ -905,32 +751,12 @@ function renderAdminSettings(){
     <button class="abtn pri" onclick="saveSettings()" style="margin-top:8px">${t('save')}</button>`;
 }
 
-async function loadOrdersFromFirebase(){
-  if(!window._fbReady) return;
-  try {
-    const snap = await window._db.collection('orders').orderBy('date','desc').get();
-    const fbOrders = snap.docs.map(d => ({...d.data(), _docId: d.id}));
-    orders = fbOrders;
-    save('sv_orders',orders);
-  } catch(e){ console.warn('Firebase load failed:',e); }
-}
-
-// Removed - using simple reload instead
-
-function renderOrderCard(o, showConfirmBtn){
-  const delLabel = o.deliveryType==='home'?'🏠 Home':'📦 Pickup';
-  const statusBadge = o.confirmed
-    ? `<span style="background:rgba(16,185,129,.15);color:#10b981;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">✓ Confirmed</span>`
-    : `<span style="background:rgba(245,158,11,.15);color:#f59e0b;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">⏳ Pending</span>`;
-  const confirmBtn = showConfirmBtn
-    ? `<button onclick="confirmOrder('${o.id}')" style="padding:8px 18px;border-radius:8px;background:var(--grn);border:none;color:#fff;font-family:var(--ff);font-size:.82rem;font-weight:700;cursor:pointer">✓ Confirm Order</button>`
-    : '';
-  const deleteBtn = `<button onclick="deleteOrder('${o.id}')" style="padding:8px 18px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;font-family:var(--ff);font-size:.82rem;font-weight:700;cursor:pointer">🗑 Delete</button>`;
-  return `<div style="background:var(--bg2);border:1px solid ${o.confirmed?'rgba(16,185,129,.2)':'var(--brd)'};border-radius:var(--r2);padding:16px;margin-bottom:10px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
-      <div style="display:flex;align-items:center;gap:10px"><strong>${o.id}</strong>${statusBadge}</div>
-      <span style="font-size:.78rem;color:var(--t3)">${new Date(o.date).toLocaleString()}</span>
-    </div>
+function renderAdminOrders(){
+  if(!orders.length) return `<p style="color:var(--t3);text-align:center;padding:40px">${t('noOrders')}</p>`;
+  return orders.slice().reverse().map(o=>{
+    const delLabel = o.deliveryType==='home'?'🏠 Home':'📦 Pickup';
+    return `<div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px"><strong>${o.id}</strong><span style="font-size:.78rem;color:var(--t3)">${new Date(o.date).toLocaleString()}</span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.82rem;color:var(--t2);margin-bottom:8px">
       <div>👤 ${o.name||'N/A'}</div>
       <div>📧 ${o.email}</div>
@@ -940,64 +766,9 @@ function renderOrderCard(o, showConfirmBtn){
       <div>${delLabel||'N/A'}</div>
     </div>
     ${o.address?`<div style="font-size:.82rem;color:var(--t2);margin-bottom:8px">📫 ${o.address}</div>`:''}
-    <div style="font-size:.82rem;color:var(--t2);margin-bottom:10px">${o.items.map(it=>`${it.name||'?'} ×${it.qty}`).join(', ')}</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <strong style="font-size:1rem">${settings.currency}${o.total.toFixed(2)}</strong>
-      <div style="display:flex;gap:8px">${confirmBtn}${deleteBtn}</div>
-    </div>
-  </div>`;
-}
-
-function renderAdminOrders(){
-  const pending = orders.filter(o=>!o.confirmed);
-  const confirmed = orders.filter(o=>o.confirmed);
-  const pendingHtml = pending.length
-    ? pending.map(o=>renderOrderCard(o,true)).join('')
-    : `<p style="color:var(--t3);text-align:center;padding:30px">No pending orders 🎉</p>`;
-  const confirmedHtml = confirmed.length
-    ? confirmed.map(o=>renderOrderCard(o,false)).join('')
-    : `<p style="color:var(--t3);text-align:center;padding:30px">No confirmed orders yet.</p>`;
-  return `
-    <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--brd)">
-      <button class="a-tab on" id="ordTabPending" onclick="switchOrdTab('pending')" style="display:flex;align-items:center;gap:6px">
-        ⏳ Pending <span style="background:rgba(245,158,11,.2);color:#f59e0b;padding:1px 8px;border-radius:10px;font-size:.72rem">${pending.length}</span>
-      </button>
-      <button class="a-tab" id="ordTabConfirmed" onclick="switchOrdTab('confirmed')" style="display:flex;align-items:center;gap:6px">
-        ✓ Confirmed <span style="background:rgba(16,185,129,.15);color:#10b981;padding:1px 8px;border-radius:10px;font-size:.72rem">${confirmed.length}</span>
-      </button>
-    </div>
-    <div id="ordPending">${pendingHtml}</div>
-    <div id="ordConfirmed" style="display:none">${confirmedHtml}</div>`;
-}
-
-function switchOrdTab(tab){
-  document.getElementById('ordTabPending').classList.toggle('on', tab==='pending');
-  document.getElementById('ordTabConfirmed').classList.toggle('on', tab==='confirmed');
-  document.getElementById('ordPending').style.display = tab==='pending'?'block':'none';
-  document.getElementById('ordConfirmed').style.display = tab==='confirmed'?'block':'none';
-}
-
-async function confirmOrder(id){
-  if(!window._fbReady) return;
-  try {
-    // Update in Firestore
-    await window._db.collection('orders').doc(id).set({confirmed: true}, {merge: true});
-    // Reload from Firebase
-    await loadOrdersFromFirebase();
-    toast('Order confirmed!');
-  } catch(e){ console.error('Confirm failed:',e); toast('Error: '+e.message); }
-}
-
-async function deleteOrder(id){
-  if(!confirm('Delete this order?')) return;
-  if(!window._fbReady) return;
-  try {
-    // Delete from Firestore
-    await window._db.collection('orders').doc(id).delete();
-    // Reload from Firebase
-    await loadOrdersFromFirebase();
-    toast('Order deleted');
-  } catch(e){ console.error('Delete failed:',e); toast('Error: '+e.message); }
+    <div style="font-size:.82rem;color:var(--t2);margin-bottom:4px">${o.items.map(it=>`${it.name||'?'} ×${it.qty}`).join(', ')}</div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px"><strong>${settings.currency}${o.total.toFixed(2)}</strong></div>
+  </div>`}).join('');
 }
 
 function saveSettings(){
@@ -1031,15 +802,9 @@ function openProductForm(id){
   const catOpts=cats.map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('');
   document.getElementById('formPanel').innerHTML=`<h3>${id?t('edit'):t('addProduct')}</h3>
     <div class="fg"><label class="fl">${t('brand')}</label><input class="fi" id="fName" value="${p?p.name:''}"></div>
-    <div class="fr"><div class="fg"><label class="fl">${t('category')}</label>
-    <select class="fi" id="fCat" onchange="autoFillSizes(this.value)">
-      <option value="">-- Select Type --</option>
-      ${Object.keys(CAT_SIZES).map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('')}
-      <option value="Other" ${p&&!CAT_SIZES[p.cat]?'selected':''}>Other</option>
-    </select></div>
+    <div class="fr"><div class="fg"><label class="fl">${t('category')}</label><input class="fi" id="fCat" list="catList" value="${p?p.cat:''}"><datalist id="catList">${catOpts}</datalist></div>
     <div class="fg"><label class="fl">${t('price')}</label><input class="fi" id="fPrice" type="number" min="0" step=".01" value="${p?p.price:''}"></div></div>
-    <div class="fr"><div class="fg"><label class="fl">${t('sizes')}</label><input class="fi" id="fSizes" value="${p?p.sizes:''}" placeholder="Auto-filled by type or enter custom">
-    <div class="sz-presets" id="szPresets"></div></div>
+    <div class="fr"><div class="fg"><label class="fl">${t('sizes')}</label><input class="fi" id="fSizes" value="${p?p.sizes:''}" placeholder="${t('sizePh')}"></div>
     <div class="fg"><label class="fl">${t('stock')}</label><input class="fi" id="fStock" type="number" min="0" value="${p?p.stock:'10'}"></div></div>
     <div class="fg"><label class="fl">${t('desc')}</label><input class="fi" id="fDesc" value="${p?p.desc:''}"></div>
     <div class="fg"><label class="fl">Emoji</label><input class="fi" id="fIcon" value="${p?p.icon||'':''}" maxlength="4" style="max-width:80px"></div>
@@ -1077,23 +842,14 @@ function saveProduct(){
     const newId=products.length?Math.max(...products.map(p=>p.id))+1:1;
     products.push({id:newId,name,cat,price,sizes,stock,desc,icon,color,image});
   }
-  save('sv_products',products);
-  syncProductsToFirebase();
-  closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
-}
-
-function autoFillSizes(cat){
-  const map = CAT_SIZES[cat];
-  if(map){ const el=document.getElementById('fSizes'); if(el&&!el.value) el.value=map; }
+  save('sv_products',products);closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
 }
 
 function editProduct(id){openProductForm(id);}
 function delProduct(id){
   if(!confirm('Delete this product?'))return;
   products=products.filter(p=>p.id!==id);cart=cart.filter(c=>c.id!==id);
-  save('sv_products',products);save('sv_cart',cart);
-  syncProductsToFirebase();
-  renderAll();renderAdminPanel();toast('Deleted');
+  save('sv_products',products);save('sv_cart',cart);renderAll();renderAdminPanel();toast('Deleted');
 }
 
 
@@ -1150,105 +906,24 @@ cart=cart.filter(c=>products.find(p=>p.id===c.id));
 if(settings.favicon){let link=document.querySelector("link[rel~='icon']");if(!link){link=document.createElement('link');link.rel='icon';document.head.appendChild(link);}link.href=settings.favicon;}
 save('sv_cart',cart);
 renderAll();
-
-// ===================== VISITOR TRACKING =====================
-async function initVisitorTracking(){
-  if(!window._fbReady) return;
-  const db = window._db;
-  
-  // Count total visits (only once per session)
-  if(!sessionStorage.getItem('visitCounted')){
-    try {
-      console.log('Incrementing visit count...');
-      await db.collection('stats').doc('_global').set(
-        {totalVisits: firebase.firestore.FieldValue.increment(1)}, 
-        {merge: true}
-      );
-      sessionStorage.setItem('visitCounted', '1');
-      console.log('Visit count incremented');
-    } catch(e){ console.error('Visit count failed:', e); }
-  }
-
-  // Track online users
-  const userId = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
-  const userRef = db.collection('presence').doc(userId);
-  
-  try {
-    await userRef.set({online: true, time: new Date()});
-    window.addEventListener('beforeunload', () => userRef.delete());
-  } catch(e){ console.error('Presence track failed:', e); }
-
-  // Update online count every 2 seconds
-  setInterval(async () => {
-    try {
-      const snap = await db.collection('presence').where('online', '==', true).get();
-      const onlineCount = snap.size;
-      await db.collection('stats').doc('_global').set({onlineCount}, {merge: true});
-    } catch(e){ console.warn('Online count update failed:', e); }
-  }, 2000);
-
-  // Listen to stats and update display
-  console.log('Setting up stats listener...');
-  db.collection('stats').doc('_global').onSnapshot(doc => {
-    const data = doc.data() || {};
-    console.log('Stats updated:', data);
-    const onlineEl = document.getElementById('statOnlineSite');
-    const totalEl = document.getElementById('statTotalSite');
-    if(onlineEl) onlineEl.textContent = data.onlineCount || '0';
-    if(totalEl) totalEl.textContent = data.totalVisits || '0';
-  }, err => {
-    console.error('Stats listener error:', err.message);
-  });
-}
-
-// Update admin stats display (called when admin is open)
-function startStatsListener(){
-  if(!window._fbReady) return;
-  window._db.collection('stats').doc('_global').onSnapshot(doc => {
-    const data = doc.data() || {};
-    const onlineEl = document.getElementById('statTotal');
-    if(onlineEl) onlineEl.textContent = (data.totalVisits || 0).toLocaleString();
-  });
-}
-
-initVisitorTracking().catch(e=>console.warn('Visitor init failed:', e));
-
-// ===================== PRODUCT SYNC TO FIREBASE =====================
-async function syncProductsToFirebase(){
-  if(!window._fbReady) return;
-  try {
-    await window._db.collection('products').doc('_global').set({products, lastSync: new Date().toISOString()}, {merge: true});
-  } catch(e){ console.error('Products sync failed:',e); }
-}
-
-async function loadProductsFromFirebase(){
-  if(!window._fbReady) return;
-  try {
-    const snap = await window._db.collection('products').doc('_global').get();
-    if(snap.exists && snap.data().products){
-      products = snap.data().products;
-      save('sv_products', products);
-      renderAll();
-    }
-  } catch(e){ console.warn('Products load failed:',e); }
-}
-
-// Load products from Firebase immediately and periodically
-loadProductsFromFirebase();
-setInterval(loadProductsFromFirebase, 3000); // Check every 3 seconds
-
-initVisitorTracking().catch(e=>console.warn('Visitor init failed:', e));
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-<!-- Product Preview Modal -->
-<div class="pm-ov" id="pmOV" onclick="if(event.target===this)closePM()">
-  <div class="pm-box" id="pmBox"></div>
+<!-- Stats Widget -->
+<div id="statsWidget" style="position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);color:#fff;padding:14px 18px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:99;display:flex;gap:18px;border:1px solid rgba(255,255,255,.1)">
+  <div>👁 <span id="totalVisits">0</span> visits</div>
 </div>
+<script>
+// ===================== SIMPLE VISITOR COUNTER =====================
+function initVisitorTracking(){
+  // Count visits using localStorage
+  let visits = parseInt(localStorage.getItem('sv_visits') || '0');
+  visits++;
+  localStorage.setItem('sv_visits', visits);
+  
+  // Update display
+  const el = document.getElementById('totalVisits');
+  if(el) el.textContent = visits;
+}
 
-<!-- Visitor Stats Widget (shown on site) -->
-<div id="statsWidget" style="position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);color:#fff;padding:12px 16px;border-radius:10px;font-size:.85rem;font-weight:600;z-index:100;display:flex;gap:20px;border:1px solid rgba(255,255,255,.1)">
-  <div>🟢 <span id="statOnlineSite">—</span> online</div>
-  <div>👁 <span id="statTotalSite">—</span> visits</div>
-</div>
-</body>
+initVisitorTracking();</script></body>
 </html>
