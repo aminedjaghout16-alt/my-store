@@ -105,7 +105,7 @@ a{text-decoration:none;color:inherit}
 .pcard{background:var(--bg2);border-radius:var(--r3);border:1px solid var(--brd);overflow:hidden;transition:var(--smooth);position:relative;opacity:0;transform:translateY(20px);animation:cardIn .5s forwards}
 .pcard:hover{transform:translateY(-4px);border-color:var(--brd2);box-shadow:0 4px 24px rgba(0,0,0,.3),0 0 40px rgba(124,58,237,.12)}
 .pcard-img{height:220px;position:relative;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center}
-.pcard-img img{width:100%;height:100%;object-fit:contain;background:var(--bg2)}
+.pcard-img img{width:100%;height:100%;object-fit:cover}
 .pcard-img .no-img{font-size:3rem;opacity:.3}
 .pcard-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,var(--bg2));pointer-events:none}
 .pcard-body{padding:20px}
@@ -123,8 +123,8 @@ a{text-decoration:none;color:inherit}
 .pm-ov.open{opacity:1;pointer-events:all}
 .pm-box{background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r3);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:28px;position:relative;transform:translateY(20px);transition:var(--smooth)}
 .pm-ov.open .pm-box{transform:translateY(0)}
-.pm-img{width:100%;height:360px;border-radius:var(--r2);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:16px;overflow:hidden;padding:14px}
-.pm-img img{width:100%;height:100%;object-fit:contain;background:var(--bg2)}
+.pm-img{width:100%;height:280px;border-radius:var(--r2);object-fit:cover;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:20px;overflow:hidden}
+.pm-img img{width:100%;height:100%;object-fit:cover}
 .pm-name{font-size:1.4rem;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
 .pm-cat{font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
 .pm-desc{font-size:.88rem;color:var(--t2);line-height:1.6;margin-bottom:16px}
@@ -136,10 +136,6 @@ a{text-decoration:none;color:inherit}
 .pm-sz.sel{background:rgba(124,58,237,.15);border-color:var(--ac2);color:var(--ac2)}
 .pm-atc{width:100%;padding:14px;border-radius:var(--r2);background:var(--grad);border:none;color:#fff;font-family:var(--ff);font-size:1rem;font-weight:600;cursor:pointer;transition:var(--smooth)}
 .pm-atc:disabled{opacity:.4;cursor:not-allowed}
-.pm-gallery{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 20px}
-.pm-thumb{width:64px;height:64px;border-radius:12px;border:1px solid var(--brd);background:var(--bg2);padding:4px;cursor:pointer;overflow:hidden;transition:var(--fast)}
-.pm-thumb:hover,.pm-thumb.sel{border-color:var(--ac2);box-shadow:0 0 0 3px rgba(124,58,237,.08)}
-.pm-thumb img{width:100%;height:100%;object-fit:contain;background:var(--bg2)}
 /* Size quick-picker in admin form */
 .sz-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .sz-preset{padding:5px 12px;border-radius:6px;background:var(--bg3);border:1px solid var(--brd);color:var(--t2);font-size:.75rem;font-weight:600;cursor:pointer;transition:var(--fast)}
@@ -503,85 +499,6 @@ function renderPCard(p,i){
   </div>`;
 }
 
-
-function getProductImages(p){
-  const out=[];
-  const add=(src)=>{ if(src && !out.includes(src)) out.push(src); };
-  if(Array.isArray(p.images)) p.images.forEach(add);
-  else if(typeof p.images==='string') p.images.split(/[,\n]+/).map(s=>s.trim()).forEach(add);
-  add(p.image);
-  return out;
-}
-
-let pmProductId = null;
-let pmSelectedSize = null;
-let pmImages = [];
-
-function setPmImage(src, el){
-  const main = document.getElementById('pmMainImg');
-  if(main) main.src = src;
-  document.querySelectorAll('.pm-thumb').forEach(b=>b.classList.remove('sel'));
-  if(el) el.classList.add('sel');
-}
-
-function openProductModal(id){
-  const p = products.find(x=>x.id===id);
-  if(!p) return;
-  pmProductId = id;
-  pmSelectedSize = null;
-  pmImages = getProductImages(p);
-  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const firstImg = pmImages[0];
-  const img = firstImg
-    ? `<img id="pmMainImg" src="${firstImg}" alt="${p.name}">`
-    : `<div style="font-size:4rem;display:flex;align-items:center;justify-content:center;height:100%">${p.icon||'👕'}</div>`;
-  const thumbs = pmImages.length > 1
-    ? `<div class="pm-gallery">${pmImages.map((src,idx)=>`<button type="button" class="pm-thumb${idx===0?' sel':''}" onclick="setPmImage('${src}', this)"><img src="${src}" alt="${p.name} ${idx+1}"></button>`).join('')}</div>`
-    : '';
-  const sizesHtml = szArr.length ? `
-    <div class="pm-sz-label">Select Size</div>
-    <div class="pm-sizes">${szArr.map(s=>`<button class="pm-sz" onclick="selectPmSize('${s}',this)">${s}</button>`).join('')}</div>
-  ` : '';
-  const needsSize = szArr.length > 0;
-  const inC = cart.find(c=>c.id===id);
-  document.getElementById('pmBox').innerHTML = `
-    <button class="xbtn" style="position:absolute;top:16px;right:16px" onclick="closePM()">✕</button>
-    <div class="pm-img">${img}</div>
-    <div class="pm-name">${p.name}</div>
-    <div class="pm-cat">${p.cat}</div>
-    ${p.desc?`<div class="pm-desc">${p.desc}</div>`:''}
-    <div class="pm-price">${settings.currency}${p.price.toFixed(2)}</div>
-    ${thumbs}
-    ${sizesHtml}
-    <button class="pm-atc" id="pmAtcBtn" ${needsSize&&!inC?'disabled':''} onclick="addToCartFromModal()">
-      ${inC?'✓ Already in Cart':'+ Add to Cart'}
-    </button>`;
-  document.getElementById('pmOV').classList.add('open');
-}
-
-function selectPmSize(s, el){
-  pmSelectedSize = s;
-  document.querySelectorAll('.pm-sz').forEach(b=>b.classList.remove('sel'));
-  el.classList.add('sel');
-  const btn = document.getElementById('pmAtcBtn');
-  if(btn){ btn.disabled=false; }
-}
-
-function addToCartFromModal(){
-  const p = products.find(x=>x.id===pmProductId);
-  if(!p) return;
-  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
-  if(szArr.length && !pmSelectedSize){ toast('Please select a size'); return; }
-  const ex = cart.find(c=>c.id===pmProductId && c.size===pmSelectedSize);
-  if(ex){ ex.qty++; } else { cart.push({id:pmProductId, qty:1, size:pmSelectedSize||''}); }
-  save('sv_cart',cart); renderProducts(); renderCart(); closePM();
-  toast(t('inCart'));
-}
-
-function closePM(){
-  document.getElementById('pmOV').classList.remove('open');
-}
-
 // ===================== CATEGORY SIZE MAP =====================
 const CAT_SIZES = {
   'Shirts':      'XS,S,M,L,XL,XXL,3XL',
@@ -620,6 +537,61 @@ const CAT_SIZES = {
   'Jewelry':     'One Size',
   'Sunglasses':  'One Size',
 };
+
+let pmProductId = null;
+let pmSelectedSize = null;
+
+function openProductModal(id){
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  pmProductId = id;
+  pmSelectedSize = null;
+  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const img = p.image
+    ? `<img src="${p.image}" alt="${p.name}">`
+    : `<div style="font-size:4rem;display:flex;align-items:center;justify-content:center;height:100%">${p.icon||'👕'}</div>`;
+  const sizesHtml = szArr.length ? `
+    <div class="pm-sz-label">Select Size</div>
+    <div class="pm-sizes">${szArr.map(s=>`<button class="pm-sz" onclick="selectPmSize('${s}',this)">${s}</button>`).join('')}</div>
+  ` : '';
+  const needsSize = szArr.length > 0;
+  const inC = cart.find(c=>c.id===id);
+  document.getElementById('pmBox').innerHTML = `
+    <button class="xbtn" style="position:absolute;top:16px;right:16px" onclick="closePM()">✕</button>
+    <div class="pm-img">${img}</div>
+    <div class="pm-name">${p.name}</div>
+    <div class="pm-cat">${p.cat}</div>
+    ${p.desc?`<div class="pm-desc">${p.desc}</div>`:''}
+    <div class="pm-price">${settings.currency}${p.price.toFixed(2)}</div>
+    ${sizesHtml}
+    <button class="pm-atc" id="pmAtcBtn" ${needsSize&&!inC?'disabled':''} onclick="addToCartFromModal()">
+      ${inC?'✓ Already in Cart':'+ Add to Cart'}
+    </button>`;
+  document.getElementById('pmOV').classList.add('open');
+}
+
+function selectPmSize(s, el){
+  pmSelectedSize = s;
+  document.querySelectorAll('.pm-sz').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  const btn = document.getElementById('pmAtcBtn');
+  if(btn){ btn.disabled=false; }
+}
+
+function addToCartFromModal(){
+  const p = products.find(x=>x.id===pmProductId);
+  if(!p) return;
+  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+  if(szArr.length && !pmSelectedSize){ toast('Please select a size'); return; }
+  const ex = cart.find(c=>c.id===pmProductId && c.size===pmSelectedSize);
+  if(ex){ ex.qty++; } else { cart.push({id:pmProductId, qty:1, size:pmSelectedSize||''}); }
+  save('sv_cart',cart); renderProducts(); renderCart(); closePM();
+  toast(t('inCart'));
+}
+
+function closePM(){
+  document.getElementById('pmOV').classList.remove('open');
+}
 
 // ===================== CART =====================
 function addToCart(id){
@@ -841,15 +813,9 @@ function renderAdminPanel(){
   document.getElementById('adminPanel').innerHTML=`
     <div class="a-top"><h2>${t('adminTitle')} <span class="a-tag">Admin</span></h2><button class="xbtn" onclick="closeAdmin()">✕</button></div>
     <div class="a-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-        <div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px;text-align:center">
-          <div style="font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🟢 Online Now</div>
-          <div id="statOnline" style="font-size:2rem;font-weight:800;color:#10b981">—</div>
-        </div>
-        <div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px;text-align:center">
-          <div style="font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">👁 Total Visits</div>
-          <div id="statTotal" style="font-size:2rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">—</div>
-        </div>
+      <div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px;text-align:center;margin-bottom:20px">
+        <div style="font-size:.75rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">👁 Total Site Visits</div>
+        <div id="statTotal" style="font-size:2.4rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">—</div>
       </div>
       <div class="a-tabs">
         <button class="a-tab on" onclick="aTab('products',this)">${t('cards')}</button>        <button class="a-tab" onclick="aTab('settings',this)">${t('settings')}</button>
@@ -1057,10 +1023,11 @@ function saveSettings(){
 }
 
 // ===================== PRODUCT FORM =====================
-
 function openProductForm(id){
   currentFormType='product'; currentEditId=id||null; editImgData='';
   const p=id?products.find(x=>x.id===id):null;
+  const cats=getCats().filter(c=>c!=='All');
+  const catOpts=cats.map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('');
   document.getElementById('formPanel').innerHTML=`<h3>${id?t('edit'):t('addProduct')}</h3>
     <div class="fg"><label class="fl">${t('brand')}</label><input class="fi" id="fName" value="${p?p.name:''}"></div>
     <div class="fr"><div class="fg"><label class="fl">${t('category')}</label>
@@ -1083,8 +1050,6 @@ function openProductForm(id){
       </div>
       <div class="img-or">${t('orUrl')}</div>
       <input class="fi" id="fImgUrl" value="${p&&p.image&&!p.image.startsWith('data:')?p.image:''}" placeholder="https://...">
-      <div class="img-or" style="margin-top:14px">Preview images only</div>
-      <textarea class="fta" id="fImgs" placeholder="Paste multiple image URLs, one per line or comma-separated">${p&&p.images?(Array.isArray(p.images)?p.images.join('\n'):p.images):''}</textarea>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:24px"><button class="abtn" onclick="closeForm()">${t('cancel')}</button><button class="abtn pri" onclick="saveProduct()">${t('save')}</button></div>`;
   if(p&&p.image&&p.image.startsWith('data:')) editImgData=p.image;
@@ -1101,18 +1066,15 @@ function saveProduct(){
   const icon=document.getElementById('fIcon').value.trim()||'👕';
   const color=document.getElementById('fColor').value;
   const imgUrl=document.getElementById('fImgUrl').value.trim();
-  const previewRaw=document.getElementById('fImgs').value.trim();
-  const previewImages=previewRaw ? previewRaw.split(/[,\n]+/).map(s=>s.trim()).filter(Boolean) : [];
-  const image=editImgData||imgUrl||previewImages[0]||'';
-  const images=previewImages.length ? previewImages : (image ? [image] : []);
+  const image=editImgData||imgUrl||'';
   if(!name){alert('Enter a product name');return;}
   if(isNaN(price)||price<0){alert('Enter a valid price');return;}
   if(currentEditId){
     const p=products.find(x=>x.id===currentEditId);
-    if(p) Object.assign(p,{name,cat,price,sizes,stock,desc,icon,color,image,images});
+    if(p) Object.assign(p,{name,cat,price,sizes,stock,desc,icon,color,image});
   } else {
     const newId=products.length?Math.max(...products.map(p=>p.id))+1:1;
-    products.push({id:newId,name,cat,price,sizes,stock,desc,icon,color,image,images});
+    products.push({id:newId,name,cat,price,sizes,stock,desc,icon,color,image});
   }
   save('sv_products',products);
   syncProductsToFirebase();
@@ -1195,35 +1157,14 @@ function initVisitorTracking(){
 
   // Count total visits (only once per session)
   if(!sessionStorage.getItem('visitCounted')){
-    rtdb.ref('stats/totalVisits').set(window._visitCount = (window._visitCount || 0) + 1, (err)=>{
-      if(err) rtdb.ref('stats/totalVisits').transaction(v => (v||0)+1);
-    });
+    rtdb.ref('stats/totalVisits').transaction(v => (v||0)+1);
     sessionStorage.setItem('visitCounted', '1');
   }
-
-  // Track online users - create unique user ID
-  const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
-  const userRef = rtdb.ref('presence/' + userId);
-
-  // Add user to presence
-  userRef.set({online: true});
-  
-  // On disconnect (tab close/browser close), remove from presence
-  userRef.onDisconnect().remove();
-
-  // Decrement when leaving
-  window.addEventListener('beforeunload', ()=>{
-    userRef.set(null);
-  });
 }
 
 // Update admin stats display (called when admin is open)
 function startStatsListener(){
   if(!window._fbReady || !window._rtdb) return;
-  window._rtdb.ref('stats/onlineCount').on('value', snap=>{
-    const el = document.getElementById('statOnline');
-    if(el) el.textContent = snap.val()||0;
-  });
   window._rtdb.ref('stats/totalVisits').on('value', snap=>{
     const el = document.getElementById('statTotal');
     if(el) el.textContent = (snap.val()||0).toLocaleString();
@@ -1262,6 +1203,12 @@ initVisitorTracking();
 <!-- Product Preview Modal -->
 <div class="pm-ov" id="pmOV" onclick="if(event.target===this)closePM()">
   <div class="pm-box" id="pmBox"></div>
+</div>
+
+<!-- Visitor Stats Widget (shown on site) -->
+<div id="statsWidget" style="position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);color:#fff;padding:12px 16px;border-radius:10px;font-size:.85rem;font-weight:600;z-index:100;display:flex;gap:20px;border:1px solid rgba(255,255,255,.1)">
+  <div>🟢 <span id="statOnlineSite">—</span> online</div>
+  <div>👁 <span id="statTotalSite">—</span> visits</div>
 </div>
 </body>
 </html>
