@@ -1037,7 +1037,7 @@ async function loadProductsFromFirebase(){
   } catch(e){ console.warn('Products load failed:', e); }
 }
 
-async function saveProduct(){
+function saveProduct(){
   const name=document.getElementById('fName').value.trim();
   const cat=document.getElementById('fCat').value.trim()||'Uncategorized';
   const price=parseFloat(document.getElementById('fPrice').value);
@@ -1053,14 +1053,19 @@ async function saveProduct(){
   if(isNaN(price)||price<0){alert('Enter a valid price');return;}
   if(currentEditId){
     const p=products.find(x=>x.id===currentEditId);
-    if(p) Object.assign(p,{name,cat,price,sizes,stock,desc,icon,color,image});
+    const allImages = getProductImages();
+    if(p) Object.assign(p,{name,cat,price,sizes,stock,desc,icon,color,image,images:allImages});
   } else {
     const newId=products.length?Math.max(...products.map(p=>p.id))+1:1;
-    products.push({id:newId,name,cat,price,sizes,stock,desc,icon,color,image});
+    const allImages = getProductImages();
+    products.push({id:newId,name,cat,price,sizes,stock,desc,icon,color,image,images:allImages});
   }
   save('sv_products',products);
-  await syncProductsToFirebase();
-  closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
+  syncProductsToFirebase().then(()=>{
+    closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
+  }).catch(()=>{
+    closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
+  });
 }
 
 function editProduct(id){openProductForm(id);}
