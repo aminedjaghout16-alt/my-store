@@ -926,16 +926,37 @@ function autoFillSizes(cat){ const sizes = CAT_SIZES[cat]; if(sizes && !document
 let productImages = [];
 function addImageInput(){
   const container = document.getElementById('moreImages');
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.className = 'fi';
-  input.placeholder = 'Image URL ' + (productImages.length + 2);
-  input.style.marginTop = '8px';
-  container.appendChild(input);
+  const idx = container.children.length;
+  const div = document.createElement('div');
+  div.style.marginTop = '12px';
+  div.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px">
+      <label class="fl" style="font-size:.85rem">Image ${idx+2}</label>
+      <input type="file" accept="image/*" onchange="handleMoreImage(event, this)" style="flex:1">
+    </div>
+    <div class="img-gallery" id="moreThumbs${idx}"></div>`;
+  container.appendChild(div);
+}
+
+function handleMoreImage(e, input){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const data = ev.target.result;
+    const parent = input.parentElement.parentElement;
+    const thumbsId = 'moreThumbs' + Array.from(document.getElementById('moreImages').children).indexOf(parent);
+    const thumbs = document.getElementById(thumbsId);
+    if(thumbs){
+      thumbs.innerHTML = `<div class="img-thumb"><img src="${data}" alt=""><button type="button" class="rm" onclick="this.parentElement.remove()">✕</button></div>`;
+    }
+    input.dataset.imgData = data;
+  };
+  reader.readAsDataURL(file);
 }
 function getProductImages(){
-  const main = document.getElementById('fImgUrl').value.trim();
-  const more = Array.from(document.querySelectorAll('#moreImages input')).map(i=>i.value.trim()).filter(Boolean);
+  const main = document.getElementById('fImgUrl').dataset.imgData || document.getElementById('fImgUrl').value.trim();
+  const more = Array.from(document.querySelectorAll('#moreImages input[type="file"]')).map(i=>i.dataset.imgData).filter(Boolean);
   return main ? [main, ...more] : more;
 }
 
