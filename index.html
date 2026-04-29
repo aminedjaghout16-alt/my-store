@@ -380,7 +380,30 @@ let currentEditId = null;
 
 function t(k){ return T[lang][k]||T.en[k]||k }
 function save(k,v){ localStorage.setItem(k,JSON.stringify(v)) }
-function saveAll(){ save('sv_products',products); save('sv_settings',settings); save('sv_orders',orders); save('sv_cart',cart); localStorage.setItem('sv_pw',adminPw); localStorage.setItem('sv_lang',lang); }
+
+async function syncSettingsToFirebase(){
+  if(!window._fbReady) return;
+  try {
+    await window._db.collection('settings').doc('_global').set(settings, {merge: true});
+  } catch(e){ console.warn('Settings sync failed:', e); }
+}
+
+async function syncOrdersToFirebase(){
+  if(!window._fbReady) return;
+  try {
+    for(const order of orders){
+      await window._db.collection('orders').doc(order.id).set(order, {merge: true});
+    }
+  } catch(e){ console.warn('Orders sync failed:', e); }
+}
+
+function saveAll(){ 
+  save('sv_products',products); save('sv_settings',settings); save('sv_orders',orders); save('sv_cart',cart); 
+  localStorage.setItem('sv_pw',adminPw); localStorage.setItem('sv_lang',lang);
+  syncProductsToFirebase();
+  syncSettingsToFirebase();
+  syncOrdersToFirebase();
+}
 function getPrice(p){ return p.price }
 function getCats(){ const s=new Set(['All']); products.forEach(p=>s.add(p.cat)); return [...s]; }
 function toast(m){ const c=document.getElementById('toastC'),d=document.createElement('div'); d.className='toast'; d.innerHTML='✓ '+m; c.appendChild(d); setTimeout(()=>d.remove(),3000); }
@@ -684,7 +707,8 @@ async function placeOrder(){
       <button class="conf-btn" onclick="closeConfirm()">${t('continueSh')}</button>
     </div>`;
     document.getElementById('confirmOV').classList.add('open');document.body.style.overflow='hidden';
-    cart=[];save('sv_cart',cart);renderAll();
+    cart=[];save('sv_cart',cart);loadProductsFromFirebase();
+renderAll();
   },350);
 }
 function closeConfirm(){document.getElementById('confirmOV').classList.remove('open');document.body.style.overflow='';}
@@ -865,6 +889,7 @@ async function confirmOrder(id){
     const o = orders.find(x=>x.id===id);
     if(o) o.confirmed = true;
     save('sv_orders', orders);
+    syncOrdersToFirebase();
     const ordersTab = document.getElementById('atOrders');
     if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
     toast('Order confirmed!');
@@ -878,6 +903,7 @@ async function deleteOrder(id){
     await window._db.collection('orders').doc(id).delete();
     orders = orders.filter(o=>o.id!==id);
     save('sv_orders', orders);
+    syncOrdersToFirebase();
     const ordersTab = document.getElementById('atOrders');
     if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
     toast('Order deleted');
@@ -904,7 +930,9 @@ function saveSettings(){
   settings.aboutUs=document.getElementById('setAbout').value.trim();
   // Apply favicon
   if(settings.favicon){let link=document.querySelector("link[rel~='icon']");if(!link){link=document.createElement('link');link.rel='icon';document.head.appendChild(link);}link.href=settings.favicon;}
-  save('sv_settings',settings);renderAll();renderAdminPanel();toast('Settings saved');
+  save('sv_settings',settings);
+  syncSettingsToFirebase();
+  renderAll();renderAdminPanel();toast('Settings saved');
 }
 
 // ===================== PRODUCT FORM =====================
@@ -989,7 +1017,27 @@ function openProductForm(id){
   document.getElementById('formOV').classList.add('open');
 }
 
-function saveProduct(){
+
+async function syncProductsToFirebase(){
+  if(!window._fbReady) return;
+  try {
+    await window._db.collection('products').doc('_global').set({products, lastSync: new Date().toISOString()}, {merge: true});
+  } catch(e){ console.warn('Products sync failed:', e); }
+}
+
+async function loadProductsFromFirebase(){
+  if(!window._fbReady) return;
+  try {
+    const snap = await window._db.collection('products').doc('_global').get();
+    if(snap.exists && snap.data().products){
+      products = snap.data().products;
+      save('sv_products', products);
+      renderAll();
+    }
+  } catch(e){ console.warn('Products load failed:', e); }
+}
+
+async function saveProduct(){
   const name=document.getElementById('fName').value.trim();
   const cat=document.getElementById('fCat').value.trim()||'Uncategorized';
   const price=parseFloat(document.getElementById('fPrice').value);
@@ -1010,14 +1058,18 @@ function saveProduct(){
     const newId=products.length?Math.max(...products.map(p=>p.id))+1:1;
     products.push({id:newId,name,cat,price,sizes,stock,desc,icon,color,image});
   }
-  save('sv_products',products);closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
+  save('sv_products',products);
+  await syncProductsToFirebase();
+  closeForm();renderAll();renderAdminPanel();toast(currentEditId?'Updated':'Added');
 }
 
 function editProduct(id){openProductForm(id);}
 function delProduct(id){
   if(!confirm('Delete this product?'))return;
   products=products.filter(p=>p.id!==id);cart=cart.filter(c=>c.id!==id);
-  save('sv_products',products);save('sv_cart',cart);renderAll();renderAdminPanel();toast('Deleted');
+  save('sv_products',products);save('sv_cart',cart);
+  syncProductsToFirebase();
+  renderAll();renderAdminPanel();toast('Deleted');
 }
 
 
