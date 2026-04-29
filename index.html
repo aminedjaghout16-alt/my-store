@@ -707,8 +707,12 @@ async function placeOrder(){
       <button class="conf-btn" onclick="closeConfirm()">${t('continueSh')}</button>
     </div>`;
     document.getElementById('confirmOV').classList.add('open');document.body.style.overflow='hidden';
-    cart=[];save('sv_cart',cart);loadProductsFromFirebase();
-renderAll();
+    cart=[];save('sv_cart',cart);// Load products from Firebase first, then render
+loadProductsFromFirebase().then(()=>{
+  renderAll();
+}).catch(()=>{
+  renderAll();
+});
   },350);
 }
 function closeConfirm(){document.getElementById('confirmOV').classList.remove('open');document.body.style.overflow='';}
@@ -948,7 +952,7 @@ const CAT_SIZES = {
   'Belts':'70cm,80cm,90cm,100cm,110cm,120cm','Scarves':'One Size','Gloves':'XS,S,M,L,XL','Bags':'One Size','Backpacks':'One Size',
   'Wallets':'One Size','Watches':'One Size','Jewelry':'One Size','Sunglasses':'One Size'
 };
-function autoFillSizes(cat){ const sizes = CAT_SIZES[cat]; if(sizes && !document.getElementById('fSizes').value) document.getElementById('fSizes').value = sizes; }
+
 
 
 let productImages = [];
@@ -988,6 +992,55 @@ function getProductImages(){
   return main ? [main, ...more] : more;
 }
 
+
+const CAT_CONFIG = {
+  'Shirts': {emoji:'👔', sizes:'XS,S,M,L,XL,XXL,3XL'},
+  'T-Shirts': {emoji:'👕', sizes:'XS,S,M,L,XL,XXL,3XL'},
+  'Hoodies': {emoji:'🧥', sizes:'XS,S,M,L,XL,XXL,3XL'},
+  'Jackets': {emoji:'🧥', sizes:'XS,S,M,L,XL,XXL,3XL'},
+  'Coats': {emoji:'🧥', sizes:'XS,S,M,L,XL,XXL,3XL'},
+  'Sweaters': {emoji:'🧶', sizes:'XS,S,M,L,XL,XXL,3XL'},
+  'Polos': {emoji:'👔', sizes:'XS,S,M,L,XL,XXL,3XL'},
+  'Pants': {emoji:'👖', sizes:'28,30,32,34,36,38,40,42'},
+  'Jeans': {emoji:'👖', sizes:'28,30,32,34,36,38,40,42'},
+  'Shorts': {emoji:'🩳', sizes:'XS,S,M,L,XL,XXL'},
+  'Joggers': {emoji:'🩳', sizes:'XS,S,M,L,XL,XXL'},
+  'Shoes': {emoji:'👟', sizes:'36,37,38,39,40,41,42,43,44,45,46'},
+  'Sneakers': {emoji:'👟', sizes:'36,37,38,39,40,41,42,43,44,45,46'},
+  'Boots': {emoji:'🥾', sizes:'36,37,38,39,40,41,42,43,44,45,46'},
+  'Sandals': {emoji:'👡', sizes:'36,37,38,39,40,41,42,43,44,45,46'},
+  'Slippers': {emoji:'🩴', sizes:'36,37,38,39,40,41,42,43,44,45,46'},
+  'Socks': {emoji:'🧦', sizes:'36-38,39-42,43-46'},
+  'Underwear': {emoji:'🩱', sizes:'XS,S,M,L,XL,XXL'},
+  'Bras': {emoji:'🩱', sizes:'70A,70B,70C,75A,75B,75C,80A,80B,80C,85B,85C,90B,90C'},
+  'Dresses': {emoji:'👗', sizes:'XS,S,M,L,XL,XXL'},
+  'Skirts': {emoji:'👗', sizes:'XS,S,M,L,XL,XXL'},
+  'Leggings': {emoji:'🩳', sizes:'XS,S,M,L,XL,XXL'},
+  'Swimwear': {emoji:'🩱', sizes:'XS,S,M,L,XL,XXL'},
+  'Sportswear': {emoji:'🏃', sizes:'XS,S,M,L,XL,XXL'},
+  'Hats': {emoji:'🧢', sizes:'S,M,L,XL'},
+  'Caps': {emoji:'🧢', sizes:'One Size,S,M,L'},
+  'Belts': {emoji:'🎀', sizes:'70cm,80cm,90cm,100cm,110cm,120cm'},
+  'Scarves': {emoji:'🧣', sizes:'One Size'},
+  'Gloves': {emoji:'🧤', sizes:'XS,S,M,L,XL'},
+  'Bags': {emoji:'👜', sizes:'One Size'},
+  'Backpacks': {emoji:'🎒', sizes:'One Size'},
+  'Wallets': {emoji:'👛', sizes:'One Size'},
+  'Watches': {emoji:'⌚', sizes:'One Size'},
+  'Jewelry': {emoji:'💍', sizes:'One Size'},
+  'Sunglasses': {emoji:'😎', sizes:'One Size'},
+};
+
+function autoFillCategoryInfo(cat){
+  const config = CAT_CONFIG[cat];
+  if(config){
+    const iconEl = document.getElementById('fIcon');
+    const sizeEl = document.getElementById('fSizes');
+    if(iconEl && !iconEl.value) iconEl.value = config.emoji;
+    if(sizeEl && !sizeEl.value) sizeEl.value = config.sizes;
+  }
+}
+
 function openProductForm(id){
   currentFormType='product'; currentEditId=id||null; editImgData='';
   const p=id?products.find(x=>x.id===id):null;
@@ -995,7 +1048,7 @@ function openProductForm(id){
   const catOpts=cats.map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('');
   document.getElementById('formPanel').innerHTML=`<h3>${id?t('edit'):t('addProduct')}</h3>
     <div class="fg"><label class="fl">${t('brand')}</label><input class="fi" id="fName" value="${p?p.name:''}"></div>
-    <div class="fr"><div class="fg"><label class="fl">${t('category')}</label><select class="fi" id="fCat" onchange="autoFillSizes(this.value)"><option value="">-- Select Type --</option>${Object.keys(CAT_SIZES).map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('')}<option value="Other" ${p&&!CAT_SIZES[p.cat]?'selected':''}>Other</option></select></div>
+    <div class="fr"><div class="fg"><label class="fl">${t('category')}</label><select class="fi" id="fCat" onchange="autoFillCategoryInfo(this.value)"><option value="">-- Select Type --</option>${Object.keys(CAT_SIZES).map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('')}<option value="Other" ${p&&!CAT_SIZES[p.cat]?'selected':''}>Other</option></select></div>
     <div class="fg"><label class="fl">${t('price')}</label><input class="fi" id="fPrice" type="number" min="0" step=".01" value="${p?p.price:''}"></div></div>
     <div class="fr"><div class="fg"><label class="fl">${t('sizes')}</label><input class="fi" id="fSizes" value="${p?p.sizes:''}" placeholder="${t('sizePh')}"></div>
     <div class="fg"><label class="fl">${t('stock')}</label><input class="fi" id="fStock" type="number" min="0" value="${p?p.stock:'10'}"></div></div>
@@ -1032,7 +1085,9 @@ async function loadProductsFromFirebase(){
     if(snap.exists && snap.data().products){
       products = snap.data().products;
       save('sv_products', products);
-      renderAll();
+    } else {
+      // If no products in Firebase, sync current (empty) state
+      await syncProductsToFirebase();
     }
   } catch(e){ console.warn('Products load failed:', e); }
 }
