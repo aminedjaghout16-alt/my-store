@@ -613,7 +613,7 @@ function selDel(el,type){
 }
 function closeCheckout(){document.getElementById('checkoutOV').classList.remove('open');document.body.style.overflow='';}
 
-function placeOrder(){
+async function placeOrder(){
   // Validate
   let ok=true;
   const name=document.getElementById('coName');
@@ -642,7 +642,7 @@ function placeOrder(){
 
   const orderNum='ORD-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substring(2,5).toUpperCase();  const wilayaName=DZ[wilaya.value]?DZ[wilaya.value].n:wilaya.value;
 
-  orders.push({
+  const newOrder = {
     id:orderNum,
     name:name.value.trim(),
     email:email.value.trim(),
@@ -653,9 +653,17 @@ function placeOrder(){
     address:addr.value.trim(),
     items:cart.map(c=>({...c,name:(products.find(p=>p.id===c.id)||{}).name})),
     total,
-    date:new Date().toISOString()
-  });
+    date:new Date().toISOString(),
+    confirmed:false
+  };
+  orders.push(newOrder);
   save('sv_orders',orders);
+  // Save to Firebase with order ID as document ID
+  if(window._fbReady){
+    try {
+      await window._db.collection('orders').doc(orderNum).set(newOrder);
+    } catch(e){ console.warn('Firebase save failed:',e); }
+  }
 
   closeCheckout();
   setTimeout(()=>{
@@ -796,11 +804,17 @@ function renderAdminSettings(){
 }
 
 function renderAdminOrders(){
-  if(!orders.length) return `<p style="color:var(--t3);text-align:center;padding:40px">${t('noOrders')}</p>`;
-  return orders.slice().reverse().map(o=>{
+  const pending = orders.filter(o=>!o.confirmed);
+  const confirmed = orders.filter(o=>o.confirmed);
+  
+  function orderCard(o){
     const delLabel = o.deliveryType==='home'?'🏠 Home':'📦 Pickup';
-    return `<div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);padding:16px;margin-bottom:10px">
-    <div style="display:flex;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px"><strong>${o.id}</strong><span style="font-size:.78rem;color:var(--t3)">${new Date(o.date).toLocaleString()}</span></div>
+    const badge = o.confirmed ? '<span style="background:rgba(16,185,129,.15);color:#10b981;padding:2px 8px;border-radius:12px;font-size:.7rem;font-weight:700">✓ Confirmed</span>' : '<span style="background:rgba(245,158,11,.15);color:#f59e0b;padding:2px 8px;border-radius:12px;font-size:.7rem;font-weight:700">⏳ Pending</span>';
+    return `<div style="background:var(--bg2);border:1px solid ${o.confirmed?'rgba(16,185,129,.2)':'var(--brd)'};border-radius:var(--r2);padding:16px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px"><strong>${o.id}</strong>${badge}</div>
+      <span style="font-size:.78rem;color:var(--t3)">${new Date(o.date).toLocaleString()}</span>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.82rem;color:var(--t2);margin-bottom:8px">
       <div>👤 ${o.name||'N/A'}</div>
       <div>📧 ${o.email}</div>
@@ -810,9 +824,64 @@ function renderAdminOrders(){
       <div>${delLabel||'N/A'}</div>
     </div>
     ${o.address?`<div style="font-size:.82rem;color:var(--t2);margin-bottom:8px">📫 ${o.address}</div>`:''}
-    <div style="font-size:.82rem;color:var(--t2);margin-bottom:4px">${o.items.map(it=>`${it.name||'?'} ×${it.qty}`).join(', ')}</div>
-    <div style="display:flex;justify-content:space-between;margin-top:8px"><strong>${settings.currency}${o.total.toFixed(2)}</strong></div>
-  </div>`}).join('');
+    <div style="font-size:.82rem;color:var(--t2);margin-bottom:10px">${o.items.map(it=>`${it.name||'?'} ×${it.qty}`).join(', ')}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <strong>${settings.currency}${o.total.toFixed(2)}</strong>
+      <div style="display:flex;gap:8px">
+        ${!o.confirmed?`<button onclick="confirmOrder('${o.id}')" style="padding:8px 14px;background:var(--grn);border:none;color:#fff;border-radius:6px;font-weight:600;cursor:pointer;font-family:var(--ff);font-size:.82rem">✓ Confirm</button>`:''}
+        <button onclick="deleteOrder('${o.id}')" style="padding:8px 14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;border-radius:6px;font-weight:600;cursor:pointer;font-family:var(--ff);font-size:.82rem">🗑 Delete</button>
+      </div>
+    </div>
+  </div>`;
+  }
+  
+  const pendingHtml = pending.length ? pending.map(orderCard).join('') : '<p style="color:var(--t3);text-align:center;padding:30px">No pending orders 🎉</p>';
+  const confirmedHtml = confirmed.length ? confirmed.map(orderCard).join('') : '<p style="color:var(--t3);text-align:center;padding:30px">No confirmed orders yet</p>';
+  
+  return `
+    <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--brd)">
+      <button class="a-tab on" id="ordTabPending" onclick="switchOrdTab('pending')" style="display:flex;align-items:center;gap:6px">
+        ⏳ Pending <span style="background:rgba(245,158,11,.2);color:#f59e0b;padding:1px 8px;border-radius:10px;font-size:.72rem">${pending.length}</span>
+      </button>
+      <button class="a-tab" id="ordTabConfirmed" onclick="switchOrdTab('confirmed')" style="display:flex;align-items:center;gap:6px">
+        ✓ Confirmed <span style="background:rgba(16,185,129,.15);color:#10b981;padding:1px 8px;border-radius:10px;font-size:.72rem">${confirmed.length}</span>
+      </button>
+    </div>
+    <div id="ordPending">${pendingHtml}</div>
+    <div id="ordConfirmed" style="display:none">${confirmedHtml}</div>`;
+}
+
+function switchOrdTab(tab){
+  document.getElementById('ordTabPending').classList.toggle('on', tab==='pending');
+  document.getElementById('ordTabConfirmed').classList.toggle('on', tab==='confirmed');
+  document.getElementById('ordPending').style.display = tab==='pending'?'block':'none';
+  document.getElementById('ordConfirmed').style.display = tab==='confirmed'?'block':'none';
+}
+
+async function confirmOrder(id){
+  if(!window._fbReady) return;
+  try {
+    await window._db.collection('orders').doc(id).set({confirmed: true}, {merge: true});
+    const o = orders.find(x=>x.id===id);
+    if(o) o.confirmed = true;
+    save('sv_orders', orders);
+    const ordersTab = document.getElementById('atOrders');
+    if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
+    toast('Order confirmed!');
+  } catch(e){ console.error('Confirm failed:',e); toast('Error confirming order'); }
+}
+
+async function deleteOrder(id){
+  if(!confirm('Delete this order?')) return;
+  if(!window._fbReady) return;
+  try {
+    await window._db.collection('orders').doc(id).delete();
+    orders = orders.filter(o=>o.id!==id);
+    save('sv_orders', orders);
+    const ordersTab = document.getElementById('atOrders');
+    if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
+    toast('Order deleted');
+  } catch(e){ console.error('Delete failed:',e); toast('Error deleting order'); }
 }
 
 function saveSettings(){
@@ -839,6 +908,37 @@ function saveSettings(){
 }
 
 // ===================== PRODUCT FORM =====================
+
+const CAT_SIZES = {
+  'Shirts':'XS,S,M,L,XL,XXL,3XL','T-Shirts':'XS,S,M,L,XL,XXL,3XL','Hoodies':'XS,S,M,L,XL,XXL,3XL','Jackets':'XS,S,M,L,XL,XXL,3XL',
+  'Coats':'XS,S,M,L,XL,XXL,3XL','Sweaters':'XS,S,M,L,XL,XXL,3XL','Polos':'XS,S,M,L,XL,XXL,3XL','Pants':'28,30,32,34,36,38,40,42',
+  'Jeans':'28,30,32,34,36,38,40,42','Shorts':'XS,S,M,L,XL,XXL','Joggers':'XS,S,M,L,XL,XXL','Shoes':'36,37,38,39,40,41,42,43,44,45,46',
+  'Sneakers':'36,37,38,39,40,41,42,43,44,45,46','Boots':'36,37,38,39,40,41,42,43,44,45,46','Sandals':'36,37,38,39,40,41,42,43,44,45,46',
+  'Slippers':'36,37,38,39,40,41,42,43,44,45,46','Socks':'36-38,39-42,43-46','Underwear':'XS,S,M,L,XL,XXL',
+  'Bras':'70A,70B,70C,75A,75B,75C,80A,80B,80C,85B,85C,90B,90C','Dresses':'XS,S,M,L,XL,XXL','Skirts':'XS,S,M,L,XL,XXL',
+  'Leggings':'XS,S,M,L,XL,XXL','Swimwear':'XS,S,M,L,XL,XXL','Sportswear':'XS,S,M,L,XL,XXL','Hats':'S,M,L,XL','Caps':'One Size,S,M,L',
+  'Belts':'70cm,80cm,90cm,100cm,110cm,120cm','Scarves':'One Size','Gloves':'XS,S,M,L,XL','Bags':'One Size','Backpacks':'One Size',
+  'Wallets':'One Size','Watches':'One Size','Jewelry':'One Size','Sunglasses':'One Size'
+};
+function autoFillSizes(cat){ const sizes = CAT_SIZES[cat]; if(sizes && !document.getElementById('fSizes').value) document.getElementById('fSizes').value = sizes; }
+
+
+let productImages = [];
+function addImageInput(){
+  const container = document.getElementById('moreImages');
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'fi';
+  input.placeholder = 'Image URL ' + (productImages.length + 2);
+  input.style.marginTop = '8px';
+  container.appendChild(input);
+}
+function getProductImages(){
+  const main = document.getElementById('fImgUrl').value.trim();
+  const more = Array.from(document.querySelectorAll('#moreImages input')).map(i=>i.value.trim()).filter(Boolean);
+  return main ? [main, ...more] : more;
+}
+
 function openProductForm(id){
   currentFormType='product'; currentEditId=id||null; editImgData='';
   const p=id?products.find(x=>x.id===id):null;
@@ -846,7 +946,7 @@ function openProductForm(id){
   const catOpts=cats.map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('');
   document.getElementById('formPanel').innerHTML=`<h3>${id?t('edit'):t('addProduct')}</h3>
     <div class="fg"><label class="fl">${t('brand')}</label><input class="fi" id="fName" value="${p?p.name:''}"></div>
-    <div class="fr"><div class="fg"><label class="fl">${t('category')}</label><input class="fi" id="fCat" list="catList" value="${p?p.cat:''}"><datalist id="catList">${catOpts}</datalist></div>
+    <div class="fr"><div class="fg"><label class="fl">${t('category')}</label><select class="fi" id="fCat" onchange="autoFillSizes(this.value)"><option value="">-- Select Type --</option>${Object.keys(CAT_SIZES).map(c=>`<option value="${c}" ${p&&p.cat===c?'selected':''}>${c}</option>`).join('')}<option value="Other" ${p&&!CAT_SIZES[p.cat]?'selected':''}>Other</option></select></div>
     <div class="fg"><label class="fl">${t('price')}</label><input class="fi" id="fPrice" type="number" min="0" step=".01" value="${p?p.price:''}"></div></div>
     <div class="fr"><div class="fg"><label class="fl">${t('sizes')}</label><input class="fi" id="fSizes" value="${p?p.sizes:''}" placeholder="${t('sizePh')}"></div>
     <div class="fg"><label class="fl">${t('stock')}</label><input class="fi" id="fStock" type="number" min="0" value="${p?p.stock:'10'}"></div></div>
@@ -860,6 +960,8 @@ function openProductForm(id){
       </div>
       <div class="img-or">${t('orUrl')}</div>
       <input class="fi" id="fImgUrl" value="${p&&p.image&&!p.image.startsWith('data:')?p.image:''}" placeholder="https://...">
+      <button type="button" style="margin-top:8px;width:100%;padding:12px;border-radius:var(--r1);background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:var(--ac2);font-family:var(--ff);font-size:.88rem;font-weight:600;cursor:pointer;transition:var(--fast)" onmouseover="this.style.background='var(--grad)';this.style.color='#fff';this.style.borderColor='transparent'" onmouseout="this.style.background='rgba(124,58,237,.1)';this.style.color='var(--ac2)';this.style.borderColor='rgba(124,58,237,.2)'" onclick="addImageInput()">+ Add More Images</button>
+      <div id="moreImages"></div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:24px"><button class="abtn" onclick="closeForm()">${t('cancel')}</button><button class="abtn pri" onclick="saveProduct()">${t('save')}</button></div>`;
   if(p&&p.image&&p.image.startsWith('data:')) editImgData=p.image;
@@ -877,6 +979,7 @@ function saveProduct(){
   const color=document.getElementById('fColor').value;
   const imgUrl=document.getElementById('fImgUrl').value.trim();
   const image=editImgData||imgUrl||'';
+  const images = getProductImages();
   if(!name){alert('Enter a product name');return;}
   if(isNaN(price)||price<0){alert('Enter a valid price');return;}
   if(currentEditId){
