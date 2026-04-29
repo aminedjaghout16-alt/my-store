@@ -270,6 +270,33 @@ a{text-decoration:none;color:inherit}
 .pm-sz{padding:8px 14px;border:1px solid var(--brd);border-radius:8px;background:var(--bg2);cursor:pointer;transition:.2s}
 .pm-sz.active{background:var(--ac);color:#fff;border-color:var(--ac)}
 .pm-atc{width:100%;padding:12px;background:var(--grad);border:none;color:#fff;border-radius:8px;font-weight:600;cursor:pointer;font-family:var(--ff)}
+
+/* Dark Mode */
+body.dark-mode{--bg1:#0f0f1e;--bg2:#1a1a2e;--bg3:#16213e;--t1:#f0f0f0;--t2:#b0b0b0;--t3:#808080;--brd:#333}
+/* Wishlist & Quick View */
+.wish-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.9);border:none;font-size:1.2rem;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10}
+.wish-btn.wishlisted{color:#e91e63}
+.qv-btn{position:absolute;top:48px;right:8px;background:rgba(0,0,0,.7);border:none;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:.8rem}
+/* Image Zoom */
+.pcard-img{position:relative;overflow:hidden}
+.pcard-img img{transition:transform .3s}
+.pcard-img:hover img{transform:scale(1.1)}
+/* Ratings */
+.rating{display:flex;gap:4px;align-items:center;font-size:.85rem}
+.stars{display:flex;gap:2px}
+.star{color:#ffc107;font-size:1rem}
+.rating-form{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.star-input{font-size:1.5rem;cursor:pointer;color:#ddd}
+.star-input:hover,.star-input.active{color:#ffc107}
+/* Coupon */
+.coupon-input{display:flex;gap:8px;margin-bottom:16px}
+.coupon-input input{flex:1;padding:10px;border:1px solid var(--brd);border-radius:6px;background:var(--bg2);color:var(--t1);font-family:var(--ff)}
+.coupon-input button{padding:10px 16px;background:var(--ac2);border:none;color:#fff;border-radius:6px;cursor:pointer;font-weight:600}
+.coupon-badge{background:rgba(76,175,80,.2);color:#4caf50;padding:4px 8px;border-radius:4px;font-size:.8rem}
+/* Shipping Calculator */
+.shipping-calc{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.shipping-calc select{flex:1;padding:10px;border:1px solid var(--brd);border-radius:6px;background:var(--bg2);color:var(--t1);font-family:var(--ff)}
+.shipping-cost{color:var(--ac2);font-weight:600;margin-top:8px}
 </style>
 </head>
 <body>
@@ -359,8 +386,7 @@ const T = {
 
 // ===================== DEFAULTS =====================
 const DEF_PRODUCTS = [
-  {id:1,name:'Racing Club Half-Zip Sweatshirt – XIAOZHAINV Edition',cat:'Sweaters',price:5900,sizes:'S,M,L,XL',stock:10,desc:'the best SweatShirt for summer',icon:'🧥',color:'#1a1a2e',image:'sweatshir.jpg',images:['sweatshir.jpg','sweatshir2.jpg','sweatshir3.jpg']},
-  {id:2,name:'ENSEMBLE SIMPLE CLASSIC',cat:'Ensemble',price:4500,sizes:'S,M,L,XL',stock:10,desc:'the best ensemble for summer',icon:'',color:'#1a1a2e',image:'ensemble1.jpg',images:['ensemble1.jpg','ensemble2.jpg','ensemble3.jpg']},
+  {id:1,name:'FOOTGEAR',cat:'Shoes',price:2500,sizes:'S,M,L,XL',desc:'the best shoes for summer',image:'shoes.pnj.webp',icon:'',color:'#1a1a2e',stock:10},
 ];
 const DEF_SETTINGS = { storeName:'AmineStore', storeTag:'Premium Fashion Store', currency:'DZA', logoImg:'AmineStore.png', favicon:'', siteUrl:'https://aminestoredz.netlify.app/', phone:'+213673712323', email:'aminedjaghout0@gmail.com', storeAddress:'', facebook:'', instagram:'', tiktok:'', twitter:'', announcement:'', announcementOn:false, shippingFee:0, aboutUs:'We sell premium streetwear clothing.' };
 const DEF_PW = 'admin123';
@@ -396,6 +422,116 @@ async function syncOrdersToFirebase(){
       await window._db.collection('orders').doc(order.id).set(order, {merge: true});
     }
   } catch(e){ console.warn('Orders sync failed:', e); }
+}
+
+
+// ===================== DARK MODE =====================
+function toggleDarkMode(){
+  darkMode = darkMode === 'true' ? 'false' : 'true';
+  localStorage.setItem('sv_darkMode', darkMode);
+  document.body.classList.toggle('dark-mode', darkMode === 'true');
+}
+
+// Initialize dark mode on load
+if(darkMode === 'true') document.body.classList.add('dark-mode');
+
+// ===================== WISHLIST =====================
+function toggleWishlist(id){
+  if(wishlist.includes(id)){
+    wishlist = wishlist.filter(w=>w!==id);
+  } else {
+    wishlist.push(id);
+  }
+  save('sv_wishlist', wishlist);
+  renderProducts();
+  toast(wishlist.includes(id) ? '❤️ Added to wishlist' : '💔 Removed from wishlist');
+}
+
+function renderWishlist(){
+  const wishedProducts = products.filter(p=>wishlist.includes(p.id));
+  if(!wishedProducts.length) return '<p style="text-align:center;color:var(--t3);padding:40px">No items in wishlist</p>';
+  return wishedProducts.map(p=>{
+    const inC = cart.find(c=>c.id===p.id);
+    return `<div class="pcard">
+      <div class="pcard-img" style="position:relative"><img src="${p.image||'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22%3E${p.icon||'📦'}%3C/text%3E%3C/svg%3E'}" alt="${p.name}">
+        <button class="wish-btn wishlisted" onclick="toggleWishlist(${p.id})">❤️</button>
+      </div>
+      <strong style="display:block;margin:8px 0">${p.name}</strong>
+      <div style="color:var(--t2);font-size:.85rem;margin:4px 0">${p.cat}</div>
+      <div style="margin:8px 0"><strong>${settings.currency}${p.price.toFixed(2)}</strong></div>
+      <button class="pcard-btn" onclick="openPM(${p.id})">🔍 View</button>
+    </div>`;
+  }).join('');
+}
+
+// ===================== RATINGS =====================
+function addRating(productId, stars, comment){
+  if(!ratings[productId]) ratings[productId] = [];
+  ratings[productId].push({stars, comment, date: new Date().toISOString()});
+  save('sv_ratings', ratings);
+  toast('Thank you for rating!');
+  document.getElementById('ratingForm').style.display = 'none';
+}
+
+function getAvgRating(productId){
+  const productRatings = ratings[productId] || [];
+  if(!productRatings.length) return 0;
+  const sum = productRatings.reduce((a,b)=>a+b.stars, 0);
+  return (sum / productRatings.length).toFixed(1);
+}
+
+function renderRatings(productId){
+  const productRatings = ratings[productId] || [];
+  const avg = getAvgRating(productId);
+  const stars = '⭐'.repeat(Math.round(avg));
+  return `<div class="rating"><div class="stars">${stars}</div><span>(${productRatings.length})</span> <span>${avg}/5</span></div>`;
+}
+
+// ===================== COUPONS =====================
+const COUPONS = {
+  'SAVE10': {discount: 10, type: 'percent'},
+  'SAVE500': {discount: 500, type: 'fixed'},
+  'SUMMER20': {discount: 20, type: 'percent'}
+};
+
+function applyCoupon(code){
+  const coupon = COUPONS[code.toUpperCase()];
+  if(!coupon){ toast('Invalid coupon code'); return; }
+  appliedCoupon = {code: code.toUpperCase(), ...coupon};
+  save('sv_coupon', appliedCoupon);
+  toast('✓ Coupon applied!');
+  renderCart();
+}
+
+function calculateDiscount(){
+  if(!appliedCoupon) return 0;
+  const subtotal = cart.reduce((sum, c)=>{
+    const p = products.find(x=>x.id===c.id);
+    return sum + (p?.price||0)*c.qty;
+  }, 0);
+  return appliedCoupon.type === 'percent' ? subtotal * appliedCoupon.discount / 100 : appliedCoupon.discount;
+}
+
+// ===================== SHIPPING CALCULATOR =====================
+const SHIPPING_RATES = {
+  'Annaba': 500,
+  'Algiers': 600,
+  'Oran': 700,
+  'Constantine': 750,
+  'Other': 1000
+};
+
+function calculateShipping(wilaya){
+  return SHIPPING_RATES[wilaya] || SHIPPING_RATES['Other'];
+}
+
+// ===================== QUICK VIEW =====================
+function quickView(id){
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  const avg = getAvgRating(id);
+  const stars = '⭐'.repeat(Math.round(avg));
+  alert(\`\${p.name}\nCategory: \${p.cat}\nPrice: \${settings.currency}\${p.price.toFixed(2)}\nStock: \${p.stock}\nRating: \${stars} (\${avg}/5)\n\nClick "View" for full details\`);
 }
 
 function saveAll(){ 
@@ -711,7 +847,14 @@ async function placeOrder(){
     document.getElementById('confirmOV').classList.add('open');document.body.style.overflow='hidden';
     cart=[];save('sv_cart',cart);// Always load from Firebase first (it's the source of truth)
 loadProductsFromFirebase().finally(()=>{
-  renderAll();
+  // If products still empty, sync the ones from code
+  if(products.length === 0){
+    syncProductsToFirebase().then(()=>{
+      renderAll();
+    });
+  } else {
+    renderAll();
+  }
 });
   },350);
 }
