@@ -359,8 +359,7 @@ const T = {
 
 // ===================== DEFAULTS =====================
 const DEF_PRODUCTS = [
-  {id:1,name:'Racing Club Half-Zip Sweatshirt – XIAOZHAINV Edition',cat:'Sweaters',price:5900,sizes:'S,M,L,XL',stock:10,desc:'the best SweatShirt for summer',icon:'🧥',color:'#1a1a2e',image:'sweatshir.jpg',images:['sweatshir.jpg','sweatshir2.jpg','sweatshir3.jpg']},
-  {id:1,name:'ENSEMBLE SIMPLE CLASSIC',cat:'Ensemble',price:4500,sizes:'S,M,L,XL',stock:10,desc:'the best ensemble for summer',icon:'',color:'#1a1a2e',image:'ensemble1.jpg',images:['ensemble1.jpg','ensemble2.jpg','ensemble3.jpg']},
+  {id:1,name:'FOOTGEAR',cat:'Shoes',price:2500,sizes:'S,M,L,XL',desc:'the best shoes for summer',image:'shoes.pnj.webp',icon:'',color:'#1a1a2e',stock:10},
 ];
 const DEF_SETTINGS = { storeName:'AmineStore', storeTag:'Premium Fashion Store', currency:'DZA', logoImg:'AmineStore.png', favicon:'', siteUrl:'https://aminestoredz.netlify.app/', phone:'+213673712323', email:'aminedjaghout0@gmail.com', storeAddress:'', facebook:'', instagram:'', tiktok:'', twitter:'', announcement:'', announcementOn:false, shippingFee:0, aboutUs:'We sell premium streetwear clothing.' };
 const DEF_PW = 'admin123';
@@ -503,18 +502,19 @@ function openPM(id){
   const p = products.find(x=>x.id===id);
   if(!p) return;
   pmPid = id; pmSize = null;
-  const imgs = p.images || (p.image ? [p.image] : []);
+  const imgs = p.images && p.images.length ? p.images : (p.image ? [p.image] : []);
   const imgHtml = imgs.length ? `<img id="pmImg" src="${imgs[0]}" alt="">` : `<div style="font-size:3rem">${p.icon||'👕'}</div>`;
-  const galHtml = imgs.length > 1 ? `<div class="pm-gallery">${imgs.map((i,idx)=>`<div class="pm-thumb${idx===0?' active':''}" onclick="switchImg('${i}',this)"><img src="${i}" alt=""></div>`).join('')}</div>` : '';
+  const galHtml = imgs.length > 1 ? `<div class="pm-gallery">${imgs.map((i,idx)=>`<div class="pm-thumb${idx===0?' active':''}" onclick="switchImg('${i}')"><img src="${i}" alt=""></div>`).join('')}</div>` : '';
   const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
   const szHtml = szArr.length ? `<div class="pm-sizes">${szArr.map(s=>`<button class="pm-sz" style="background:var(--bg2);border:1px solid var(--brd);color:var(--t2)" onmouseover="this.style.background='rgba(124,58,237,.1)';this.style.borderColor='var(--ac2)';this.style.color='var(--ac2)'" onmouseout="if(!this.classList.contains('active')){this.style.background='var(--bg2)';this.style.borderColor='var(--brd)';this.style.color='var(--t2)'}" onclick="pmSize='${s}';document.querySelectorAll('.pm-sz').forEach(b=>{b.classList.remove('active');b.style.background='var(--bg2)';b.style.borderColor='var(--brd)';b.style.color='var(--t2)'});this.classList.add('active');this.style.background='var(--grad)';this.style.borderColor='var(--ac2)';this.style.color='#fff'">${s}</button>`).join('')}</div>` : '';
   document.getElementById('pmBox').innerHTML=`<button class="xbtn" style="position:absolute;top:12px;right:12px" onclick="closePM()">✕</button><div class="pm-img">${imgHtml}</div>${galHtml}<div class="pm-name">${p.name}</div><div class="pm-price">${settings.currency}${p.price.toFixed(2)}</div>${szHtml}<button class="pm-atc" onclick="addFromPM()">+ Add to Cart</button>`;
   document.getElementById('pmOV').classList.add('open');
 }
-function switchImg(src,el){
-  document.getElementById('pmImg').src=src;
+function switchImg(src){
+  const img = document.getElementById('pmImg');
+  if(img) img.src=src;
   document.querySelectorAll('.pm-thumb').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
+  event.target.closest('.pm-thumb').classList.add('active');
 }
 function closePM(){
   document.getElementById('pmOV').classList.remove('open');
