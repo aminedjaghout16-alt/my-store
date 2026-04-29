@@ -902,10 +902,14 @@ async function deleteOrder(id){
   if(!confirm('Delete this order?')) return;
   if(!window._fbReady) return;
   try {
+    // Delete from Firebase first
     await window._db.collection('orders').doc(id).delete();
+    // Then update local
     orders = orders.filter(o=>o.id!==id);
     save('sv_orders', orders);
-    syncOrdersToFirebase();
+    // Sync remaining orders
+    await syncOrdersToFirebase();
+    // Update display
     const ordersTab = document.getElementById('atOrders');
     if(ordersTab) ordersTab.innerHTML = renderAdminOrders();
     toast('Order deleted');
