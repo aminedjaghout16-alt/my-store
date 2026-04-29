@@ -359,6 +359,7 @@ const T = {
 
 // ===================== DEFAULTS =====================
 const DEF_PRODUCTS = [
+  {id:1,name:'FOOTGEAR',cat:'Shoes',price:2500,sizes:'S,M,L,XL',desc:'the best shoes for summer',image:'shoes.pnj.webp',icon:'',color:'#1a1a2e',stock:10},
 ];
 const DEF_SETTINGS = { storeName:'AmineStore', storeTag:'Premium Fashion Store', currency:'DZA', logoImg:'AmineStore.png', favicon:'', siteUrl:'https://aminestoredz.netlify.app/', phone:'+213673712323', email:'aminedjaghout0@gmail.com', storeAddress:'', facebook:'', instagram:'', tiktok:'', twitter:'', announcement:'', announcementOn:false, shippingFee:0, aboutUs:'We sell premium streetwear clothing.' };
 const DEF_PW = 'admin123';
@@ -706,10 +707,8 @@ async function placeOrder(){
       <button class="conf-btn" onclick="closeConfirm()">${t('continueSh')}</button>
     </div>`;
     document.getElementById('confirmOV').classList.add('open');document.body.style.overflow='hidden';
-    cart=[];save('sv_cart',cart);// Load products from Firebase first, then render
-loadProductsFromFirebase().then(()=>{
-  renderAll();
-}).catch(()=>{
+    cart=[];save('sv_cart',cart);// Always load from Firebase first (it's the source of truth)
+loadProductsFromFirebase().finally(()=>{
   renderAll();
 });
   },350);
@@ -1082,13 +1081,20 @@ async function loadProductsFromFirebase(){
   try {
     const snap = await window._db.collection('products').doc('_global').get();
     if(snap.exists && snap.data().products){
+      // Firebase is source of truth - always use it
       products = snap.data().products;
       save('sv_products', products);
     } else {
-      // If no products in Firebase, sync current (empty) state
+      // If no products in Firebase, clear localStorage and sync empty
+      products = [];
+      save('sv_products', products);
       await syncProductsToFirebase();
     }
-  } catch(e){ console.warn('Products load failed:', e); }
+  } catch(e){ 
+    console.warn('Products load failed:', e);
+    // On error, use what's in localStorage
+    products = load('sv_products') ?? [];
+  }
 }
 
 function saveProduct(){
