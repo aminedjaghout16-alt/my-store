@@ -270,6 +270,79 @@ a{text-decoration:none;color:inherit}
 .pm-sz{padding:8px 14px;border:1px solid var(--brd);border-radius:8px;background:var(--bg2);cursor:pointer;transition:.2s}
 .pm-sz.active{background:var(--ac);color:#fff;border-color:var(--ac)}
 .pm-atc{width:100%;padding:12px;background:var(--grad);border:none;color:#fff;border-radius:8px;font-weight:600;cursor:pointer;font-family:var(--ff)}
+
+/* === EXTRA FEATURES === */
+body[data-theme="light"]{
+  --bg0:#f4f7fb;--bg1:#ffffff;--bg2:#eef3fb;--bg3:#dbe5f3;
+  --brd:rgba(15,23,42,.08);--brd2:rgba(124,58,237,.18);
+  --t1:#0f172a;--t2:#475569;--t3:#64748b;
+}
+body[data-theme="light"] .hdr,
+body[data-theme="light"] .ftr,
+body[data-theme="light"] .a-pan,
+body[data-theme="light"] .af,
+body[data-theme="light"] .pw-box,
+body[data-theme="light"] .modal,
+body[data-theme="light"] .c-sb{
+  box-shadow:0 10px 35px rgba(15,23,42,.08);
+}
+.theme-btn,.wish-btn{
+  width:40px;height:40px;border-radius:12px;border:1px solid var(--brd);background:var(--bg2);color:var(--t1);
+  display:grid;place-items:center;cursor:pointer;transition:var(--fast);font-size:1rem;position:relative;
+}
+.theme-btn:hover,.wish-btn:hover{border-color:var(--brd2);transform:translateY(-1px)}
+.wish-btn.on{background:rgba(244,63,94,.12);border-color:rgba(244,63,94,.3);color:#f43f5e}
+.wish-count{
+  position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--ac);
+  color:#fff;font-size:.68rem;font-weight:700;display:grid;place-items:center;
+}
+.nav-actions{display:flex;align-items:center;gap:8px}
+.pcard-img{cursor:pointer;position:relative}
+.pcard-img img,.pm-img img{transition:transform .35s ease}
+.pcard-img:hover img,.pm-img:hover img{transform:scale(1.05)}
+.pcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.pcard-rate,.pm-rate,.pm-rating-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stars{display:inline-flex;gap:2px;line-height:1}
+.star{font-size:.9rem;opacity:.25}
+.star.on{opacity:1;color:#f59e0b}
+.star.half{opacity:.65;color:#f59e0b}
+.pcard-rate{font-size:.75rem;color:var(--t3);margin-bottom:10px}
+.pcard-wish{
+  position:absolute;top:10px;right:10px;z-index:2;background:rgba(6,6,10,.35);backdrop-filter:blur(8px);
+}
+.pm-top-actions{position:absolute;top:12px;right:12px;display:flex;gap:8px;z-index:3}
+.pm-gallery{display:flex;gap:8px;margin:12px 0 18px;overflow-x:auto;padding-bottom:4px}
+.pm-thumb{width:58px;height:58px;border-radius:8px;border:1px solid var(--brd);background:var(--bg2);cursor:pointer;flex-shrink:0;overflow:hidden;padding:0}
+.pm-thumb img{width:100%;height:100%;object-fit:cover}
+.pm-thumb.active{border-color:var(--ac2);box-shadow:0 0 0 2px rgba(124,58,237,.15) inset}
+.pm-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 16px;color:var(--t2);font-size:.85rem}
+.pm-review-box{margin-top:18px;padding-top:18px;border-top:1px solid var(--brd)}
+.pm-review-box h4{font-size:.95rem;font-weight:800;margin-bottom:12px}
+.rev-stars{display:flex;gap:6px;margin:10px 0}
+.rev-star{border:none;background:transparent;color:#f59e0b;cursor:pointer;font-size:1.15rem;opacity:.35;padding:0}
+.rev-star.on{opacity:1}
+.rev-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--brd)}
+.rev-row:last-child{border-bottom:none}
+.rev-name{font-weight:700;font-size:.88rem}
+.rev-date{font-size:.72rem;color:var(--t3)}
+.rev-text{font-size:.84rem;color:var(--t2);margin-top:4px;line-height:1.5}
+.wish-list{display:grid;gap:12px}
+.wish-item{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--brd);border-radius:14px;background:var(--bg2)}
+.wish-item img{width:58px;height:58px;object-fit:cover;border-radius:10px}
+.wish-item h5{font-size:.92rem;margin-bottom:4px}
+.wish-item p{font-size:.8rem;color:var(--t3)}
+.wish-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.coupon-row{display:flex;gap:10px;align-items:center;margin-top:12px}
+.coupon-row .fi{flex:1}
+.coupon-note{font-size:.76rem;color:var(--t3);margin-top:8px}
+.co-sum-wrap{margin-top:14px}
+.co-sum-wrap .os-row strong{font-weight:800}
+.quick-link{
+  width:100%;margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(124,58,237,.22);background:rgba(124,58,237,.08);
+  color:var(--ac2);cursor:pointer;font-family:var(--ff);font-weight:700;transition:var(--fast);
+}
+.quick-link:hover{background:var(--grad);color:#fff;border-color:transparent}
+
 </style>
 </head>
 <body>
@@ -378,7 +451,7 @@ let isAdmin = false;
 let editImgData = '';
 let currentFormType = ''; // 'product'
 let currentEditId = null;
-
+let pmPid = null, pmSize = null, pmReviewStars = 5;
 function t(k){ return T[lang][k]||T.en[k]||k }
 function save(k,v){ localStorage.setItem(k,JSON.stringify(v)) }
 
@@ -1186,6 +1259,476 @@ function renderFooter(){
   </div><div class="ftr-btm"><p>&copy; 2026 ${settings.storeName}. All rights reserved.</p></div>`;
 }
 
+
+// ===================== EXTRA FEATURES =====================
+const WISHLIST_KEY = 'sv_wishlist';
+const REVIEW_KEY = 'sv_reviews';
+const THEME_KEY = 'sv_theme';
+let wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]');
+let reviews = JSON.parse(localStorage.getItem(REVIEW_KEY) || '{}');
+let themeMode = localStorage.getItem(THEME_KEY) || 'dark';
+let couponState = { code:'', percent:0, amount:0 };
+
+function escHtml(v){
+  return String(v ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function applyTheme(mode){
+  themeMode = mode === 'light' ? 'light' : 'dark';
+  document.body.dataset.theme = themeMode;
+  localStorage.setItem(THEME_KEY, themeMode);
+}
+
+function toggleTheme(){
+  applyTheme(themeMode === 'dark' ? 'light' : 'dark');
+  renderAll();
+}
+
+function isWish(id){ return wishlist.includes(id); }
+
+function toggleWish(id){
+  wishlist = isWish(id) ? wishlist.filter(x => x !== id) : [...wishlist, id];
+  localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+  renderAll();
+  if (pmPid === id) openPM(id);
+  toast(wishlist.includes(id) ? 'Saved to wishlist' : 'Removed from wishlist');
+}
+
+function openWishlist(){
+  const box = document.getElementById('wishModal');
+  const items = wishlist
+    .map(id => products.find(p => p.id === id))
+    .filter(Boolean);
+
+  box.innerHTML = `
+    <button class="xbtn" style="float:right" onclick="closeWishlist()">✕</button>
+    <h2>Wishlist</h2>
+    <p style="color:var(--t2);margin-bottom:18px">Saved products for later.</p>
+    ${items.length ? `<div class="wish-list">${
+      items.map(p => `
+        <div class="wish-item">
+          ${p.image ? `<img src="${escHtml(p.image)}" alt="${escHtml(p.name)}">` : `<div style="width:58px;height:58px;border-radius:10px;background:var(--bg3);display:grid;place-items:center">${escHtml(p.icon || '👕')}</div>`}
+          <div>
+            <h5>${escHtml(p.name)}</h5>
+            <p>${escHtml(p.cat)} · ${settings.currency}${Number(p.price || 0).toFixed(2)}</p>
+          </div>
+          <div class="wish-actions">
+            <button class="abtn" type="button" onclick="openPM(${p.id});closeWishlist()">Quick view</button>
+            <button class="abtn dan" type="button" onclick="toggleWish(${p.id})">Remove</button>
+          </div>
+        </div>`
+      ).join('')
+    }</div>` : `<div style="text-align:center;color:var(--t3);padding:30px 10px">No saved products yet.</div>`}
+  `;
+  document.getElementById('wishOV').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeWishlist(){
+  document.getElementById('wishOV')?.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function starMarkup(value, total = 5){
+  const v = Math.max(0, Math.min(total, Number(value) || 0));
+  let out = '<span class="stars">';
+  for(let i=1;i<=total;i++){
+    const cls = i <= Math.floor(v) ? 'star on' : (i - v < 1 && i > v ? 'star half' : 'star');
+    out += `<span class="${cls}">★</span>`;
+  }
+  out += '</span>';
+  return out;
+}
+
+function avgRating(pid){
+  const arr = reviews[pid] || [];
+  if(!arr.length) return 0;
+  return arr.reduce((s,r) => s + (Number(r.stars) || 0), 0) / arr.length;
+}
+
+function reviewList(pid){
+  const arr = reviews[pid] || [];
+  if(!arr.length) return '<div style="color:var(--t3);font-size:.85rem">No reviews yet.</div>';
+  return arr.slice().reverse().slice(0, 6).map(r => `
+    <div class="rev-row">
+      <div style="min-width:0">
+        <div class="rev-name">${escHtml(r.name || 'Anonymous')}</div>
+        <div>${starMarkup(r.stars)}</div>
+        <div class="rev-text">${escHtml(r.text || '')}</div>
+      </div>
+      <div class="rev-date">${new Date(r.date || Date.now()).toLocaleDateString()}</div>
+    </div>
+  `).join('');
+}
+
+function setReviewStars(n){
+  pmReviewStars = n;
+  document.querySelectorAll('.rev-star').forEach((b, i) => b.classList.toggle('on', i < n));
+}
+
+function submitReview(){
+  if(!pmPid) return;
+  const name = document.getElementById('revName')?.value.trim() || 'Anonymous';
+  const text = document.getElementById('revText')?.value.trim();
+  if(!text){ toast('Write a review first'); return; }
+  const arr = reviews[pmPid] || [];
+  arr.push({ name, text, stars: pmReviewStars, date: new Date().toISOString() });
+  reviews[pmPid] = arr;
+  localStorage.setItem(REVIEW_KEY, JSON.stringify(reviews));
+  toast('Review added');
+  openPM(pmPid);
+}
+
+function calcShippingFee(wilayaCode, delType){
+  const base = Number(settings.shippingFee || 0);
+  if(!wilayaCode) return base;
+  if(delType === 'pickup') return Math.max(0, Math.round(base * 0.55));
+  const remote = new Set(['11','30','33','37','45','47','49','50','51','52','53','54','55','56','57','58']);
+  if(remote.has(wilayaCode)) return base + Math.max(150, Math.round(base * 0.35));
+  return base;
+}
+
+function getCouponDiscount(subtotal, code){
+  const map = { 'WELCOME10': 10, 'SAVE15': 15, 'AMINE20': 20, 'FIRST5': 5 };
+  const pct = map[String(code || '').trim().toUpperCase()] || 0;
+  return pct ? { percent: pct, amount: subtotal * (pct / 100) } : { percent: 0, amount: 0 };
+}
+
+function updateCheckoutSummary(){
+  const box = document.getElementById('coSummary');
+  if(!box) return;
+
+  const subtotal = cart.reduce((s,it) => {
+    const p = products.find(x => x.id === it.id);
+    return s + (p ? Number(p.price || 0) * Number(it.qty || 0) : 0);
+  }, 0);
+
+  const wilaya = document.getElementById('coWilaya')?.value || '';
+  const delType = document.getElementById('coDelType')?.value || 'home';
+  const shipping = calcShippingFee(wilaya, delType);
+  const discount = couponState.amount || 0;
+  const total = Math.max(0, subtotal + shipping - discount);
+
+  box.innerHTML = `
+    <div class="os-row"><span>Subtotal</span><span>${settings.currency}${subtotal.toFixed(2)}</span></div>
+    <div class="os-row"><span>Shipping</span><span>${settings.currency}${shipping.toFixed(2)}</span></div>
+    ${discount ? `<div class="os-row"><span>Discount (${couponState.code})</span><span>-${settings.currency}${discount.toFixed(2)}</span></div>` : ''}
+    <div class="os-row tot"><span>Total</span><span>${settings.currency}${total.toFixed(2)}</span></div>
+  `;
+}
+
+function applyCoupon(){
+  const input = document.getElementById('coCoupon');
+  const note = document.getElementById('coCouponNote');
+  const subtotal = cart.reduce((s,it) => {
+    const p = products.find(x => x.id === it.id);
+    return s + (p ? Number(p.price || 0) * Number(it.qty || 0) : 0);
+  }, 0);
+
+  const result = getCouponDiscount(subtotal, input?.value || '');
+  if(result.percent){
+    couponState = { code: (input.value || '').trim().toUpperCase(), percent: result.percent, amount: result.amount };
+    if(note) note.textContent = `Coupon applied: ${couponState.code} (-${result.percent}%)`;
+    toast('Coupon applied');
+  }else{
+    couponState = { code:'', percent:0, amount:0 };
+    if(note) note.textContent = 'Invalid coupon code';
+    toast('Invalid coupon');
+  }
+  updateCheckoutSummary();
+}
+
+function renderHeader(){
+  const logoHtml = settings.logoImg
+    ? `<img src="${settings.logoImg}" alt="${settings.storeName}" class="logo-img"> <span>${settings.storeName}</span>`
+    : `<span class="logo-i">SV</span> ${settings.storeName}`;
+  const announceHtml = settings.announcementOn && settings.announcement
+    ? `<div class="announce-bar">${settings.announcement}</div>` : '';
+  document.getElementById('hdrIn').innerHTML = `
+    <div class="logo" onclick="scrollTo('#hero')">${logoHtml}</div>
+    <div class="nav">
+      <a class="nav-l hm" href="#hero">${t('home')}</a>
+      <a class="nav-l hm" href="#products">${t('browse')}</a>
+      <button class="nav-l" onclick="promptAdmin()">${t('admin')}</button>
+      <div class="nav-actions">
+        <button class="theme-btn" type="button" onclick="toggleTheme()" title="Toggle theme">${themeMode === 'dark' ? '☀️' : '🌙'}</button>
+        <button class="wish-btn" type="button" onclick="openWishlist()" title="Wishlist">🤍<span class="wish-count">${wishlist.length}</span></button>
+      </div>
+      <select class="lang-sel" onchange="setLang(this.value)">
+        <option value="en" ${lang==='en'?'selected':''}>EN</option>
+        <option value="fr" ${lang==='fr'?'selected':''}>FR</option>
+        <option value="ar" ${lang==='ar'?'selected':''}>AR</option>
+      </select>
+      <button class="cart-b" onclick="toggleCart()">🛒 ${t('cart')} <span class="cbadge${cart.reduce((s,c)=>s+c.qty,0)>0?' vis':''}" id="cBadge">${cart.reduce((s,c)=>s+c.qty,0)}</span></button>
+    </div>`;
+  const oldAnn = document.querySelector('.announce-bar');
+  if(oldAnn) oldAnn.remove();
+  if(announceHtml) document.getElementById('hdr').insertAdjacentHTML('beforebegin', announceHtml);
+}
+
+function renderPCard(p,i){
+  const inC = cart.find(c=>c.id===p.id);
+  const oos = p.stock!==undefined && p.stock<=0;
+  const img = p.image ? `<img src="${escHtml(p.image)}" alt="${escHtml(p.name)}">` : `<div class="no-img">${escHtml(p.icon||'👕')}</div>`;
+  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const avg = avgRating(p.id);
+  return `<div class="pcard" style="animation-delay:${i*.06}s">
+    <div class="pcard-img" style="background:linear-gradient(135deg,${p.color||'#1a1a2e'}22,${p.color||'#1a1a2e'}08)" onclick="${oos?'void(0)':'openPM('+p.id+')'}">
+      ${img}
+      <button class="wish-btn pcard-wish ${isWish(p.id)?'on':''}" type="button" onclick="event.stopPropagation();toggleWish(${p.id})" title="Wishlist">${isWish(p.id)?'♥':'♡'}</button>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-top">
+        <div>
+          <div class="pcard-name">${escHtml(p.name)}</div>
+          <div class="pcard-cat">${escHtml(p.cat)}</div>
+        </div>
+      </div>
+      <div class="pcard-rate">${starMarkup(avg)} <span>${avg ? avg.toFixed(1) : 'New'}</span></div>
+      ${szArr.length?`<div class="pcard-sizes">${szArr.map(s=>`<span class="pcard-sz">${escHtml(s)}</span>`).join('')}</div>`:''}
+      <div class="pcard-price">${settings.currency}${Number(p.price || 0).toFixed(2)}</div>
+      <button class="pcard-btn${oos?' out':''}" onclick="${oos?'void(0)':'openPM('+p.id+')'}">
+        ${oos ? t('outStock') : 'Quick View'}
+      </button>
+    </div>
+  </div>`;
+}
+
+function openPM(id){
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  pmPid = id;
+  pmSize = null;
+  pmReviewStars = 5;
+
+  const imgs = p.images && p.images.length ? p.images : (p.image ? [p.image] : []);
+  const imgHtml = imgs.length ? `<img id="pmMainImg" src="${escHtml(imgs[0])}" alt="${escHtml(p.name)}">` : `<div style="font-size:3rem">${escHtml(p.icon||'👕')}</div>`;
+  const galHtml = imgs.length > 1 ? `<div class="pm-gallery">${imgs.map((i,idx)=>`<button type="button" class="pm-thumb${idx===0?' active':''}" onclick="switchImg(${JSON.stringify(i)},this)"><img src="${escHtml(i)}" alt=""></button>`).join('')}</div>` : '';
+  const szArr = (p.sizes||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const avg = avgRating(id);
+  const ratingLabel = reviews[id]?.length ? `${avg.toFixed(1)} / 5 · ${reviews[id].length} review(s)` : 'No reviews yet';
+
+  const szHtml = szArr.length ? `<div class="pm-sizes">${szArr.map(s=>`<button type="button" class="pm-sz" onclick="pmSize='${escHtml(s)}';document.querySelectorAll('.pm-sz').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${escHtml(s)}</button>`).join('')}</div>` : '';
+
+  document.getElementById('pmBox').innerHTML = `
+    <button class="xbtn" style="position:absolute;top:12px;right:12px;z-index:4" onclick="closePM()">✕</button>
+    <div class="pm-top-actions">
+      <button class="wish-btn ${isWish(id)?'on':''}" type="button" onclick="toggleWish(${id})" title="Wishlist">${isWish(id)?'♥':'♡'}</button>
+    </div>
+    <div class="pm-img">${imgHtml}</div>
+    ${galHtml}
+    <div class="pm-name">${escHtml(p.name)}</div>
+    <div class="pm-meta">
+      <div class="pm-rate">${starMarkup(avg)} <span>${ratingLabel}</span></div>
+      <div>${escHtml(p.cat)}</div>
+    </div>
+    <div class="pm-desc">${escHtml(p.desc || '')}</div>
+    <div class="pm-price">${settings.currency}${Number(p.price || 0).toFixed(2)}</div>
+    ${szHtml}
+    <button class="pm-atc" onclick="addFromPM()">+ Add to Cart</button>
+
+    <div class="pm-review-box">
+      <h4>Product Reviews</h4>
+      <div class="pm-rating-line" style="margin-bottom:8px">Rate this product: <span id="revPick">${starMarkup(pmReviewStars)}</span></div>
+      <div class="rev-stars" id="revStars">
+        ${[1,2,3,4,5].map(n=>`<button type="button" class="rev-star${n<=pmReviewStars?' on':''}" onclick="setReviewStars(${n})">★</button>`).join('')}
+      </div>
+      <div class="fg"><input class="fi" id="revName" placeholder="Your name"></div>
+      <div class="fg"><textarea class="fta" id="revText" placeholder="Write a short review..." rows="3"></textarea></div>
+      <button class="abtn pri" type="button" onclick="submitReview()">Add review</button>
+      <div style="margin-top:16px">${reviewList(id)}</div>
+    </div>
+  `;
+  document.getElementById('pmOV').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function switchImg(src, el){
+  const img = document.getElementById('pmMainImg');
+  if(img) img.src = src;
+  document.querySelectorAll('.pm-thumb').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+function openCheckout(){
+  toggleCart();
+  couponState = { code:'', percent:0, amount:0 };
+  setTimeout(()=>{
+    const subtotal = cart.reduce((s,it) => {
+      const p = products.find(x=>x.id===it.id);
+      return s + (p ? Number(p.price || 0) * Number(it.qty || 0) : 0);
+    }, 0);
+    const wilOpts = Object.keys(DZ).map(k=>`<option value="${k}">${k} - ${DZ[k].n}</option>`).join('');
+    document.getElementById('checkoutModal').innerHTML = `
+      <button class="xbtn" style="float:right" onclick="closeCheckout()">✕</button>
+      <h2>${t('checkoutTitle')}</h2>
+
+      <div class="fg"><label class="fl">${t('fullName')}</label><input class="fi" id="coName" type="text" placeholder="${t('namePh')}"><div class="fe" id="coNameErr">${t('nameErr')}</div></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">${t('email')}</label><input class="fi" id="coEmail" type="email" placeholder="${t('emailPh')}"><div class="fe" id="coEmailErr">${t('emailErr')}</div></div>
+        <div class="fg"><label class="fl">${t('phone')}</label><input class="fi" id="coPhone" type="tel" placeholder="${t('phonePh')}"><div class="fe" id="coPhoneErr">${t('phoneErr')}</div></div>
+      </div>
+
+      <div class="fr">
+        <div class="fg"><label class="fl">${t('wilaya')}</label><select class="fsel" id="coWilaya" onchange="onWilayaChange()"><option value="">${t('selectWilaya')}</option>${wilOpts}</select></div>
+        <div class="fg"><label class="fl">${t('commune')}</label><select class="fsel" id="coCommune" disabled><option value="">${t('selectCommune')}</option></select></div>
+      </div>
+
+      <label class="fl">${t('delivery')}</label>
+      <div class="del-opts">
+        <div class="del-opt sel" onclick="selDel(this,'home')">
+          <div class="del-icon">🏠</div>
+          <div class="del-label">${t('homeDelivery')}</div>
+          <div class="del-desc">${t('homeDeliveryDesc')}</div>
+        </div>
+        <div class="del-opt" onclick="selDel(this,'pickup')">
+          <div class="del-icon">📦</div>
+          <div class="del-label">${t('pickupDelivery')}</div>
+          <div class="del-desc">${t('pickupDeliveryDesc')}</div>
+        </div>
+      </div>
+      <input type="hidden" id="coDelType" value="home">
+
+      <div class="fg" id="addrGroup"><label class="fl">${t('address')}</label><input class="fi" id="coAddr" type="text" placeholder="${t('addressPh')}"><div class="fe" id="coAddrErr">${t('addressErr')}</div></div>
+
+      <div class="fg">
+        <label class="fl">Discount code</label>
+        <div class="coupon-row">
+          <input class="fi" id="coCoupon" type="text" placeholder="WELCOME10 / SAVE15 / AMINE20">
+          <button class="abtn" type="button" onclick="applyCoupon()">Apply</button>
+        </div>
+        <div class="coupon-note" id="coCouponNote">Try: WELCOME10, SAVE15, AMINE20, FIRST5</div>
+      </div>
+
+      <div class="order-sum co-sum-wrap" id="coSummary"></div>
+      <button class="co-btn" onclick="placeOrder()">${t('placeOrder')}</button>`;
+    document.getElementById('checkoutOV').classList.add('open');
+    document.body.style.overflow='hidden';
+    updateCheckoutSummary();
+  },300);
+}
+
+function onWilayaChange(){
+  const wk=document.getElementById('coWilaya').value;
+  const cs=document.getElementById('coCommune');
+  cs.innerHTML=`<option value="">${t('selectCommune')}</option>`;
+  if(wk&&DZ[wk]){
+    cs.disabled=false;
+    DZ[wk].c.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o);});
+  } else { cs.disabled=true; }
+  updateCheckoutSummary();
+}
+
+function selDel(el,type){
+  document.querySelectorAll('.del-opt').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('coDelType').value=type;
+  updateCheckoutSummary();
+}
+
+async function placeOrder(){
+  let ok=true;
+  const name=document.getElementById('coName');
+  const email=document.getElementById('coEmail');
+  const phone=document.getElementById('coPhone');
+  const wilaya=document.getElementById('coWilaya');
+  const commune=document.getElementById('coCommune');
+  const addr=document.getElementById('coAddr');
+  const delType=document.getElementById('coDelType').value;
+
+  ['coNameErr','coEmailErr','coPhoneErr','coAddrErr'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('vis');});
+  [name,email,phone,addr].forEach(e=>{if(e)e.classList.remove('err');});
+
+  if(!name.value.trim()){document.getElementById('coNameErr').classList.add('vis');name.classList.add('err');ok=false;}
+  if(!email.value.trim()||!email.value.includes('@')){document.getElementById('coEmailErr').classList.add('vis');email.classList.add('err');ok=false;}
+  if(!phone.value.trim()||phone.value.replace(/\D/g,'').length<8){document.getElementById('coPhoneErr').classList.add('vis');phone.classList.add('err');ok=false;}
+  if(!wilaya.value){toast(t('selectWilaya'));ok=false;}
+  if(!commune.value){toast(t('selectCommune'));ok=false;}
+  if(!addr.value.trim()){document.getElementById('coAddrErr').classList.add('vis');addr.classList.add('err');ok=false;}
+  if(!ok)return;
+
+  const subtotal = cart.reduce((s,it) => {
+    const p = products.find(x=>x.id===it.id);
+    return s + (p ? Number(p.price || 0) * Number(it.qty || 0) : 0);
+  }, 0);
+  const shipping = calcShippingFee(wilaya.value, delType);
+  const discount = couponState.amount || 0;
+  const total = Math.max(0, subtotal + shipping - discount);
+
+  cart.forEach(it=>{
+    const p=products.find(x=>x.id===it.id);
+    if(p && p.stock!==undefined) p.stock = Math.max(0, p.stock - it.qty);
+  });
+  save('sv_products',products);
+
+  const orderNum='ORD-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substring(2,5).toUpperCase();
+  const wilayaName=DZ[wilaya.value]?DZ[wilaya.value].n:wilaya.value;
+  const newOrder = {
+    id:orderNum,
+    name:name.value.trim(),
+    email:email.value.trim(),
+    phone:phone.value.trim(),
+    wilaya:wilaya.value+' - '+wilayaName,
+    commune:commune.value,
+    deliveryType:delType,
+    shippingFee:shipping,
+    coupon:couponState.code || '',
+    discount,
+    address:addr.value.trim(),
+    items:cart.map(c=>({...c,name:(products.find(p=>p.id===c.id)||{}).name})),
+    total,
+    date:new Date().toISOString(),
+    confirmed:false
+  };
+  orders.push(newOrder);
+  save('sv_orders',orders);
+
+  if(window._fbReady){
+    try { await window._db.collection('orders').doc(orderNum).set(newOrder); } catch(e){ console.warn('Firebase save failed:',e); }
+  }
+
+  closeCheckout();
+  setTimeout(()=>{
+    const delLabel = delType==='home'?t('homeDelivery'):t('pickupDelivery');
+    document.getElementById('confirmModal').innerHTML=`<div style="text-align:center;padding:20px 0">
+      <div class="conf-icon">✓</div><h2>${t('orderOk')}</h2>
+      <div class="conf-num">${orderNum}</div>
+      <p style="color:var(--t2);margin-bottom:16px">${t('orderDeliver')} <strong>${email.value}</strong></p>
+      <div class="conf-det">
+        <div class="conf-r"><span class="lb">${t('fullName')}</span><span>${escHtml(name.value)}</span></div>
+        <div class="conf-r"><span class="lb">${t('phone')}</span><span>${escHtml(phone.value)}</span></div>
+        <div class="conf-r"><span class="lb">${t('wilaya')}</span><span>${escHtml(wilayaName)}</span></div>
+        <div class="conf-r"><span class="lb">${t('commune')}</span><span>${escHtml(commune.value)}</span></div>
+        <div class="conf-r"><span class="lb">${t('delivery')}</span><span>${escHtml(delLabel)}</span></div>
+        <div class="conf-r"><span class="lb">Shipping</span><span>${settings.currency}${shipping.toFixed(2)}</span></div>
+        ${discount?`<div class="conf-r"><span class="lb">Discount</span><span>-${settings.currency}${discount.toFixed(2)}</span></div>`:''}
+        <div class="conf-r"><span class="lb">${t('items')}</span><span>${cart.reduce((s,c)=>s+c.qty,0)}</span></div>
+        <div class="conf-r"><span class="lb">${t('total')}</span><span>${settings.currency}${total.toFixed(2)}</span></div>
+      </div>
+      <button class="conf-btn" onclick="closeConfirm()">${t('continueSh')}</button>
+    </div>`;
+    document.getElementById('confirmOV').classList.add('open');document.body.style.overflow='hidden';
+    cart=[];save('sv_cart',cart);renderAll();
+  },350);
+}
+
+function closePM(){
+  document.getElementById('pmOV').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function closeCheckout(){
+  document.getElementById('checkoutOV').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+applyTheme(themeMode);
+
 // ===================== INIT =====================
 window.addEventListener('scroll',()=>document.getElementById('hdr').classList.toggle('scrolled',scrollY>20));
 const dropArea=document.getElementById('formOV');
@@ -1199,8 +1742,7 @@ save('sv_cart',cart);
 renderAll();
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous">
-let pmPid = null, pmSize = null;
-
 </script>
+<div class="m-ov" id="wishOV" onclick="if(event.target===this) closeWishlist()"><div class="modal" id="wishModal"></div></div>
 <div class="pm-ov" id="pmOV" onclick="if(event.target===this) closePM()"><div class="pm-box" id="pmBox"></div></div></body>
 </html>
